@@ -1,0 +1,399 @@
+[
+  {
+    "Name": "时间戳",
+    "Type": 0,
+    "Address": "DB1.DBB0",
+    "Length": 1,
+    "Remark": "系统时间戳字节"
+  },
+  {
+    "Name": "残压值",
+    "Type": 7,
+    "Address": "DB1.DBD4",
+    "Length": 1,
+    "Remark": "两电压传感器验证一致，取平均值"
+  },
+  {
+    "Name": "当前操作模式",
+    "Type": 0,
+    "Address": "DB1.DBB8",
+    "Length": 1,
+    "Remark": "1-手动,2-电动",
+    "TypeValues": {
+      "1": "手动",
+      "2": "电动"
+    }
+  },
+  {
+    "Name": "是否远程操作",
+    "Type": 0,
+    "Address": "DB1.DBX9.0",
+    "Length": 1,
+    "Remark": "0就地,1远程",
+    "TypeValues": {
+      "0": "就地",
+      "1": "远程"
+    }
+  },
+  {
+    "Name": "是否维锁",
+    "Type": 0,
+    "Address": "DB1.DBX9.1",
+    "Length": 1,
+    "Remark": "0解锁,1维锁",
+    "TypeValues": {
+      "0": "解锁",
+      "1": "维锁"
+    }
+  },
+  {
+    "Name": "合闸允许",
+    "Type": 0,
+    "Address": "DB1.DBX9.2",
+    "Length": 1,
+    "Remark": "0不允许,1允许",
+    "TypeValues": {
+      "0": "不允许",
+      "1": "允许"
+    }
+  },
+  {
+    "Name": "是否闭锁",
+    "Type": 0,
+    "Address": "DB1.DBX9.3",
+    "Length": 1,
+    "Remark": "0未闭锁,1闭锁",
+    "TypeValues": {
+      "0": "未闭锁",
+      "1": "闭锁"
+    }
+  },
+  {
+    "Name": "是否告警",
+    "Type": 0,
+    "Address": "DB1.DBX9.4",
+    "Length": 1,
+    "Remark": "0正常,1告警",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "是否分闸到位",
+    "Type": 0,
+    "Address": "DB1.DBX9.5",
+    "Length": 1,
+    "Remark": "0未到位,1到位",
+    "TypeValues": {
+      "0": "未到位",
+      "1": "到位"
+    }
+  },
+  {
+    "Name": "是否合闸到位",
+    "Type": 0,
+    "Address": "DB1.DBX9.6",
+    "Length": 1,
+    "Remark": "0未到位,1到位",
+    "TypeValues": {
+      "0": "未到位",
+      "1": "到位"
+    }
+  },
+  {
+    "Name": "隔离开关是否合闸",
+    "Type": 0,
+    "Address": "DB1.DBX9.7",
+    "Length": 1,
+    "Remark": "0分位,1合位",
+    "TypeValues": {
+      "0": "分位",
+      "1": "合位"
+    }
+  },
+  {
+    "Name": "维锁状态告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.0",
+    "Length": 1,
+    "Remark": "不允许合,设备处于维锁状态",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "急停按钮告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.1",
+    "Length": 1,
+    "Remark": "不允许合,急停按钮未复位",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "带电状态告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.2",
+    "Length": 1,
+    "Remark": "不允许合,设备带电",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "刀闸分闸未到位告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.3",
+    "Length": 1,
+    "Remark": "不允许合,隔离刀闸分分闸未到位",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "通讯超时告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.4",
+    "Length": 1,
+    "Remark": "PLC与上位机通讯超时",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "旋钮开关状态告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.5",
+    "Length": 1,
+    "Remark": "控制柜面板手动/自动/调试、远程/就地旋钮开关状态不对",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "分闸维锁告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.6",
+    "Length": 1,
+    "Remark": "不允许分,设备处于维锁状态",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "刀闸未合位告警",
+    "Type": 0,
+    "Address": "DB1.DBX10.7",
+    "Length": 1,
+    "Remark": "不允许分,隔离刀闸未到合位",
+    "TypeValues": {
+      "0": "正常",
+      "1": "告警"
+    }
+  },
+  {
+    "Name": "刀闸合闸失败",
+    "Type": 0,
+    "Address": "DB1.DBX11.0",
+    "Length": 1,
+    "Remark": "合闸失败指示",
+    "TypeValues": {
+      "0": "正常",
+      "1": "失败"
+    }
+  },
+  {
+    "Name": "刀闸分闸失败",
+    "Type": 0,
+    "Address": "DB1.DBX11.1",
+    "Length": 1,
+    "Remark": "分闸失败指示",
+    "TypeValues": {
+      "0": "正常",
+      "1": "失败"
+    }
+  },
+  {
+    "Name": "电压不一致告警",
+    "Type": 0,
+    "Address": "DB1.DBX12.0",
+    "Length": 1,
+    "Remark": "1-不一致,0-基本一致",
+    "TypeValues": {
+      "0": "一致",
+      "1": "不一致"
+    }
+  },
+  {
+    "Name": "带电状态不一致",
+    "Type": 0,
+    "Address": "DB1.DBX12.1",
+    "Length": 1,
+    "Remark": "1-不一致,0-一致",
+    "TypeValues": {
+      "0": "一致",
+      "1": "不一致"
+    }
+  },
+  {
+    "Name": "有电状态",
+    "Type": 0,
+    "Address": "DB1.DBX12.2",
+    "Length": 1,
+    "Remark": "0没电,1有电",
+    "TypeValues": {
+      "0": "没电",
+      "1": "有电"
+    }
+  },
+  {
+    "Name": "带电强分",
+    "Type": 0,
+    "Address": "DB1.DBX12.6",
+    "Length": 1,
+    "Remark": "带电情况下强制分闸",
+    "TypeValues": {
+      "0": "正常",
+      "1": "强分"
+    }
+  },
+  {
+    "Name": "PLC自检故障",
+    "Type": 0,
+    "Address": "DB1.DBX12.7",
+    "Length": 1,
+    "Remark": "PLC自检故障指示",
+    "TypeValues": {
+      "0": "正常",
+      "1": "故障"
+    }
+  },
+  {
+    "Name": "远程电动启动",
+    "Type": 0,
+    "Address": "DB1.DBX13.0",
+    "Length": 1,
+    "Remark": "远程模式下电动启动命令"
+  },
+  {
+    "Name": "就地电动启动",
+    "Type": 0,
+    "Address": "DB1.DBX13.1",
+    "Length": 1,
+    "Remark": "就地模式下电动启动命令"
+  },
+  {
+    "Name": "就地手动启动",
+    "Type": 0,
+    "Address": "DB1.DBX13.2",
+    "Length": 1,
+    "Remark": "手动模式启动命令"
+  },
+  {
+    "Name": "远程电动停止",
+    "Type": 0,
+    "Address": "DB1.DBX13.3",
+    "Length": 1,
+    "Remark": "远程模式下电动停止命令"
+  },
+  {
+    "Name": "就地电动停止",
+    "Type": 0,
+    "Address": "DB1.DBX13.4",
+    "Length": 1,
+    "Remark": "就地模式下电动停止命令"
+  },
+  {
+    "Name": "就地手动停止",
+    "Type": 0,
+    "Address": "DB1.DBX13.5",
+    "Length": 1,
+    "Remark": "手动模式停止命令"
+  },
+  {
+    "Name": "外部门禁系统允许",
+    "Type": 0,
+    "Address": "DB1.DBX13.6",
+    "Length": 1,
+    "Remark": "外部门禁联锁允许信号"
+  },
+  {
+    "Name": "远程操作允许",
+    "Type": 0,
+    "Address": "DB1.DBB304",
+    "Length": 1,
+    "Remark": "远程操作验证码55"
+  },
+  {
+    "Name": "合闸分闸命令",
+    "Type": 0,
+    "Address": "DB1.DBB305",
+    "Length": 1,
+    "Remark": "55合闸66分闸"
+  },
+  {
+    "Name": "复位命令",
+    "Type": 0,
+    "Address": "DB1.DBB306",
+    "Length": 1,
+    "Remark": "66复位"
+  },
+  {
+    "Name": "时间_年",
+    "Type": 0,
+    "Address": "DB1.DBB350",
+    "Length": 1,
+    "Remark": "授时年"
+  },
+  {
+    "Name": "时间_月",
+    "Type": 0,
+    "Address": "DB1.DBB351",
+    "Length": 1,
+    "Remark": "授时月"
+  },
+  {
+    "Name": "时间_日",
+    "Type": 0,
+    "Address": "DB1.DBB352",
+    "Length": 1,
+    "Remark": "授时日"
+  },
+  {
+    "Name": "时间_时",
+    "Type": 0,
+    "Address": "DB1.DBB353",
+    "Length": 1,
+    "Remark": "授时时"
+  },
+  {
+    "Name": "时间_分",
+    "Type": 0,
+    "Address": "DB1.DBB354",
+    "Length": 1,
+    "Remark": "授时分"
+  },
+  {
+    "Name": "时间_秒",
+    "Type": 0,
+    "Address": "DB1.DBB355",
+    "Length": 1,
+    "Remark": "授时秒"
+  },
+  {
+    "Name": "授时命令",
+    "Type": 0,
+    "Address": "DB1.DBB356",
+    "Length": 1,
+    "Remark": "=23表示开始授时"
+  }
+]

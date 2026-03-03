@@ -1,0 +1,168 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:S7Assistant.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="360"
+        x:Class="S7Assistant.Views.ConnectionSettingsDialog"
+        x:DataType="vm:ConnectionSettingsDialogViewModel"
+        Title="连接设置"
+        Width="400" Height="360"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <vm:ConnectionSettingsDialogViewModel/>
+    </Design.DataContext>
+
+    <Grid Margin="20" RowDefinitions="Auto,*,Auto,Auto">
+        <!-- 标题 -->
+        <Border Grid.Row="0"
+                Padding="12,8"
+                Background="{DynamicResource SystemAccentColor}"
+                CornerRadius="4"
+                Margin="0,0,0,16">
+            <TextBlock Text="PLC连接配置"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- 配置表单 -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12">
+                <!-- IP地址 -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="IP地址" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding Config.Ip}"
+                             Watermark="例如: 192.168.1.1"/>
+                </StackPanel>
+
+                <!-- CPU类型 -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="CPU类型" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding CpuTypes}"
+                              SelectedItem="{Binding Config.CpuType}"
+                              HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="选择CPU类型后将自动设置机架号和插槽号"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StackPanel>
+
+                <!-- 自动计算的 Rack 和 Slot（只读显示） -->
+                <Grid ColumnDefinitions="*,16,*">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="机架号 (Rack)" FontWeight="SemiBold"/>
+                        <Border Padding="8,4"
+                                Background="{DynamicResource SystemAltLowColor}"
+                                BorderBrush="{DynamicResource SystemChromeGrayColor}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <TextBlock Text="{Binding Config.Rack, Mode=OneWay}"
+                                       HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="根据CPU类型自动设置"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Spacing="4">
+                        <TextBlock Text="插槽号 (Slot)" FontWeight="SemiBold"/>
+                        <Border Padding="8,4"
+                                Background="{DynamicResource SystemAltLowColor}"
+                                BorderBrush="{DynamicResource SystemChromeGrayColor}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <TextBlock Text="{Binding Config.Slot, Mode=OneWay}"
+                                       HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="根据CPU类型自动设置"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- PDU大小 -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="PDU大小" FontWeight="SemiBold"/>
+                    <NumericUpDown Value="{Binding Config.PduSize}"
+                                   Minimum="128"
+                                   Maximum="1024"
+                                   Increment="32"
+                                   FormatString="0"
+                                   HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="范围: 128-1024 (建议960)"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StackPanel>
+
+                <!-- 连接类型 -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="连接类型" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding ConnectionTypes}"
+                              SelectedIndex="{Binding Config.ConnectionType}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="1=PG, 2=OP, 3=Basic (建议OP)"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 测试连接结果 -->
+        <Border Grid.Row="2"
+                Name="TestResultBorder"
+                Margin="0,8,0,0"
+                Padding="12,8"
+                CornerRadius="4"
+                Background="#FFF0F0F0"
+                IsVisible="False">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Ellipse Width="12" Height="12"
+                         Name="TestResultIndicator"
+                         VerticalAlignment="Center"
+                         Fill="Gray"/>
+                <TextBlock Name="TestResultText"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 按钮 -->
+        <Border Grid.Row="3" Margin="0,16,0,0" Padding="12,8" Background="{DynamicResource SystemAltMediumColor}" CornerRadius="4">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8">
+                <Button Name="TestButton"
+                        Click="OnTestClick"
+                        Padding="16,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Name="TestButtonText" Text="测试连接"/>
+                        <ProgressBar Name="TestProgress"
+                                    IsIndeterminate="True"
+                                    Width="40"
+                                    Height="4"
+                                    VerticalAlignment="Center"
+                                    IsVisible="False"/>
+                    </StackPanel>
+                </Button>
+                <Button Content="取消"
+                        IsCancel="True"
+                        Padding="16,6"/>
+                <Button Content="确定"
+                        Name="OkButton"
+                        IsDefault="True"
+                        Click="OnOkClick"
+                        Padding="24,6"
+                        Classes="Accent"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

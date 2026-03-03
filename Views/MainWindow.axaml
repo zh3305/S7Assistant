@@ -1,0 +1,325 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:S7Assistant.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="using:S7Assistant.Converters"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="S7Assistant.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="S7小助手V2.0"
+        MinWidth="1000" MinHeight="700"
+        Width="1200" Height="800">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Resources>
+        <converters:BoolToConnectionStatusConverter x:Key="BoolToConnectionStatusConverter"/>
+        <converters:PlcStatusConverter x:Key="PlcStatusConverter"/>
+        <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </Window.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- 顶部工具栏 -->
+        <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="16,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- 左侧：连接信息和控制 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <!-- 连接状态指示 -->
+                    <Border CornerRadius="4" Padding="10,6" Background="#20FFFFFF">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse Width="10" Height="10"
+                                     Fill="{Binding IsConnected, Converter={StaticResource BoolToConnectionStatusConverter}}"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding IsConnected, Converter={StaticResource BoolToConnectionStatusConverter}}"
+                                       FontWeight="SemiBold" Foreground="White"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- IP地址 -->
+                    <Border CornerRadius="4" Padding="10,6" Background="#20FFFFFF">
+                        <TextBlock Foreground="White" VerticalAlignment="Center">
+                            <Run Text="IP:"/><Run Text="{Binding ConnectionConfig.Ip}" FontWeight="SemiBold"/>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <!-- 中间：标题 -->
+                <TextBlock Grid.Column="1"
+                           Text="S7小助手V2.0"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                <!-- 右侧：配置管理按钮 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding OpenConnectionSettingsCommand}"
+                            Content="连接设置"
+                            Padding="12,6"/>
+                    <Button Command="{Binding OpenConfigManagerCommand}"
+                            Content="配置管理"
+                            Padding="12,6"
+                            IsEnabled="{Binding !IsConnected}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 设置面板 -->
+        <Border Grid.Row="1" Padding="16,12" Background="{DynamicResource SystemAltMediumColor}"
+                BorderBrush="{DynamicResource SystemChromeGrayColor}" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto">
+                <!-- 配置选择 -->
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <TextBlock Text="配置文件" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding ConfigFiles}"
+                              SelectedItem="{Binding SelectedConfigFile}"
+                              MinWidth="120"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 连接/断开按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
+                    <Button Command="{Binding ConnectCommand}"
+                            Content="连接"
+                            Padding="16,8"
+                            Background="{DynamicResource SystemAccentColor}"
+                            Foreground="White"
+                            IsEnabled="{Binding !IsConnected}"/>
+                    <Button Command="{Binding DisconnectCommand}"
+                            Content="断开"
+                            Padding="16,8"
+                            IsEnabled="{Binding IsConnected}"/>
+                </StackPanel>
+
+                <!-- 监视间隔 -->
+                <StackPanel Grid.Column="2" Margin="0,0,16,0">
+                    <TextBlock Text="监视间隔" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                    <ComboBox SelectedIndex="{Binding MonitorIntervalIndex}" MinWidth="100">
+                        <ComboBoxItem Content="50ms"/>
+                        <ComboBoxItem Content="100ms"/>
+                        <ComboBoxItem Content="200ms"/>
+                        <ComboBoxItem Content="500ms"/>
+                        <ComboBoxItem Content="1000ms"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- 监视控制 -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
+                    <Button Command="{Binding StartMonitoringCommand}"
+                            Content="开始监视"
+                            Padding="12,8"
+                            IsEnabled="{Binding CanStartMonitoring}"/>
+                    <Button Command="{Binding StopMonitoringCommand}"
+                            Content="停止监视"
+                            Padding="12,8"
+                            IsEnabled="{Binding IsMonitoring}"/>
+                </StackPanel>
+
+                <!-- 全局操作 -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
+                    <Button Command="{Binding ReadAllCommand}"
+                            Content="全部读取"
+                            Padding="12,8"
+                            IsEnabled="{Binding IsConnected}"/>
+                    <Button Command="{Binding RefreshStatusCommand}"
+                            Content="刷新状态"
+                            Padding="12,8"
+                            IsEnabled="{Binding IsConnected}"/>
+                </StackPanel>
+
+                <!-- 数据项计数 -->
+                <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4">
+                    <TextBlock Text="共" VerticalAlignment="Center" Foreground="#6b7280"/>
+                    <TextBlock Text="{Binding DataItems.Count}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="个数据项" VerticalAlignment="Center" Foreground="#6b7280"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 主内容区：数据表格 + 日志 -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,360">
+            <!-- 数据表格 -->
+            <Border Grid.Column="0" Margin="16,16,8,16" Background="White" CornerRadius="8"
+                    BorderBrush="#e5e7eb" BorderThickness="1">
+                <DataGrid ItemsSource="{Binding DataItems}"
+                          SelectedItem="{Binding SelectedItem}"
+                          IsReadOnly="False"
+                          CanUserReorderColumns="True"
+                          CanUserResizeColumns="True"
+                          AutoGenerateColumns="False"
+                          GridLinesVisibility="All"
+                          BorderThickness="0">
+                    <DataGrid.Styles>
+                        <Style Selector="DataGridRow:nth-child(2n)">
+                            <Setter Property="Background" Value="#f9fafb"/>
+                        </Style>
+                        <Style Selector="DataGridRow:pointerover">
+                            <Setter Property="Background" Value="#f3f4f6"/>
+                        </Style>
+                        <Style Selector="DataGridRow:selected">
+                            <Setter Property="Background" Value="#e0e7ff"/>
+                        </Style>
+                        <Style Selector="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#f9fafb"/>
+                            <Setter Property="Foreground" Value="#4b5563"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="Height" Value="34"/>
+                            <Setter Property="Padding" Value="8"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        </Style>
+                        <Style Selector="DataGridCell">
+                            <Setter Property="Padding" Value="4,2"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.Styles>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="70" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="地址" Binding="{Binding Address}" Width="90" IsReadOnly="True"/>
+                        <DataGridTemplateColumn Header="当前值" Width="100" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding CurrentValue, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             Background="#f3f4f6"
+                                             BorderThickness="0"
+                                             Padding="4,2"
+                                             HorizontalContentAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="写入值" Width="90">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding WriteValue}"
+                                             Watermark="值"
+                                             Padding="4,2"
+                                             HorizontalContentAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="写入" Width="60" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="写入"
+                                            Padding="4,2"
+                                            FontSize="11"
+                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).WriteValueCommand}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="备注" Binding="{Binding Remark}" Width="*" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- 日志面板 -->
+            <Border Grid.Column="1" Margin="8,16,16,16" Background="White" CornerRadius="8"
+                    BorderBrush="#e5e7eb" BorderThickness="1" Padding="16">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- 日志标题栏 -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                        <TextBlock Grid.Column="0" Text="操作日志" FontSize="14" FontWeight="SemiBold" Foreground="#1f2937"/>
+                        <Button Grid.Column="1"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="8,4"
+                                Foreground="#6b7280"
+                                FontSize="12"
+                                Command="{Binding ClearLogsCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="🗑"/>
+                                <TextBlock Text="清空"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- 日志列表 -->
+                    <Border Grid.Row="1" Background="#f9fafb" CornerRadius="6" Padding="12">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding Logs}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   FontFamily="Consolas, Courier New"
+                                                   FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,4">
+                                            <TextBlock.Foreground>
+                                                <MultiBinding Converter="{StaticResource LogLevelToColorConverter}">
+                                                    <Binding/>
+                                                </MultiBinding>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 底部状态栏 -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource SystemChromeLowColor}"
+                Padding="16,8"
+                BorderBrush="{DynamicResource SystemChromeGrayColor}"
+                BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                <!-- 监视状态指示器 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0">
+                    <Grid>
+                        <Ellipse Width="10" Height="10" VerticalAlignment="Center"
+                                 IsVisible="{Binding !IsMonitoring}"
+                                 Fill="#9ca3af"/>
+                        <Ellipse Width="10" Height="10" VerticalAlignment="Center"
+                                 IsVisible="{Binding IsMonitoring}"
+                                 Fill="#22c55e"/>
+                    </Grid>
+                    <TextBlock Text="监视" FontWeight="SemiBold" VerticalAlignment="Center"
+                               Foreground="{Binding IsMonitoring, Converter={StaticResource BoolToColorConverter}}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"/>
+
+                <!-- 通信耗时 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="耗时:" Foreground="#6b7280" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding LastCommunicationTime}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="ms" Foreground="#6b7280" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="4"
+                           Text="{Binding ProviderType}"
+                           VerticalAlignment="Center"
+                           Margin="16,0,0,0"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+
+                <!-- 错误计数 -->
+                <Border Grid.Column="5"
+                        Background="#10FF0000"
+                        CornerRadius="4"
+                        Padding="8,4"
+                        Margin="16,0,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="错误:" Foreground="Red" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ErrorCount}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,219 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:S7Assistant.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+        x:Class="S7Assistant.Views.ConfigurationManagerWindow"
+        x:DataType="vm:ConfigurationManagerViewModel"
+        Title="配置管理器"
+        Width="1100" Height="700"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <vm:ConfigurationManagerViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部工具栏 -->
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- 配置管理区域 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <TextBlock VerticalAlignment="Center" Text="配置文件:" />
+                    <ComboBox Width="150"
+                              ItemsSource="{Binding ConfigFiles}"
+                              SelectedItem="{Binding SelectedConfigFile}"
+                              MinWidth="100">
+                        <ComboBox.Styles>
+                            <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#E0E7FF"/>
+                            </Style>
+                        </ComboBox.Styles>
+                    </ComboBox>
+                    <Button Content="删除配置"
+                            Command="{Binding DeleteSelectedConfigCommand}"
+                            Padding="8,4"/>
+                    <TextBlock VerticalAlignment="Center" Text="新配置:" Margin="20,0,0,0" />
+                    <TextBox Width="120" Text="{Binding NewConfigName}" />
+                    <Button Content="创建配置"
+                            Command="{Binding CreateNewConfigCommand}"
+                            Padding="8,4"/>
+                    <Button Content="从Excel导入"
+                            Command="{Binding ImportFromExcelCommand}"
+                            Margin="10,0,0,0"
+                            Padding="8,4"/>
+                </StackPanel>
+
+                <!-- 保存按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                    <Button Content="保存配置"
+                            Command="{Binding SaveConfigCommand}"
+                            Background="Green"
+                            Foreground="White"
+                            Padding="12,6"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 内容区域 - 左右分栏 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="350"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧 - 数据项列表 -->
+            <Grid Grid.Column="0" Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- 列表工具栏 -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" Spacing="10">
+                    <Button Content="添加项" Command="{Binding AddDataItemCommand}" Padding="8,4"/>
+                    <Button Content="删除选中项" Command="{Binding DeleteSelectedDataItemCommand}" Padding="8,4"/>
+                    <Button Content="清空列表" Command="{Binding ClearDataItemsCommand}" Padding="8,4"/>
+                </StackPanel>
+
+                <!-- 数据项列表 -->
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding CurrentDataItems}"
+                          SelectedItem="{Binding SelectedDataItem}"
+                          AutoGenerateColumns="False"
+                          CanUserResizeColumns="True"
+                          GridLinesVisibility="All"
+                          BorderThickness="1"
+                          BorderBrush="Gray"
+                          IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="地址" Binding="{Binding Address}" Width="120"/>
+                        <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80"/>
+                        <DataGridTextColumn Header="长度" Binding="{Binding Length}" Width="60"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <!-- 右侧 - 选中项编辑区域 -->
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="15">
+                <ScrollViewer>
+                    <StackPanel Spacing="12" IsEnabled="{Binding IsItemSelected}">
+                        <TextBlock Text="编辑选中项" FontWeight="Bold" FontSize="16"/>
+
+                        <!-- 基本信息编辑 -->
+                        <TextBlock Text="基本信息" FontWeight="SemiBold" Foreground="#666" Margin="0,8,0,4"/>
+
+                        <!-- 名称 -->
+                        <DockPanel LastChildFill="True">
+                            <TextBlock DockPanel.Dock="Left" Text="名称:" Width="60" VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding SelectedDataItem.Name, Mode=TwoWay}"/>
+                        </DockPanel>
+
+                        <!-- 类型 -->
+                        <DockPanel LastChildFill="True">
+                            <TextBlock DockPanel.Dock="Left" Text="类型:" Width="60" VerticalAlignment="Center"/>
+                            <ComboBox SelectedItem="{Binding SelectedDataItem.Type, Mode=TwoWay}"
+                                      ItemsSource="{Binding S7DataTypes}"
+                                      HorizontalAlignment="Stretch"/>
+                        </DockPanel>
+
+                        <!-- 地址编辑区域 -->
+                        <TextBlock Text="地址设置" FontWeight="SemiBold" Foreground="#666" Margin="0,12,0,4"/>
+
+                        <!-- 区域类型 -->
+                        <DockPanel LastChildFill="True">
+                            <TextBlock DockPanel.Dock="Left" Text="区域:" Width="60" VerticalAlignment="Center"/>
+                            <ComboBox SelectedItem="{Binding SelectedAreaType, Mode=TwoWay}"
+                                      ItemsSource="{Binding AreaTypes}"
+                                      HorizontalAlignment="Stretch"/>
+                        </DockPanel>
+
+                        <!-- DB号（仅DB类型显示） -->
+                        <DockPanel LastChildFill="True" IsVisible="{Binding IsDbAddress}">
+                            <TextBlock DockPanel.Dock="Left" Text="DB号:" Width="60" VerticalAlignment="Center"/>
+                            <NumericUpDown Value="{Binding EditDbNumber, Mode=TwoWay}"
+                                           Minimum="1" Maximum="65535"/>
+                        </DockPanel>
+
+                        <!-- 偏移量 -->
+                        <DockPanel LastChildFill="True">
+                            <TextBlock DockPanel.Dock="Left" Text="偏移量:" Width="60" VerticalAlignment="Center"/>
+                            <NumericUpDown Value="{Binding EditOffset, Mode=TwoWay}"
+                                           Minimum="0" Maximum="65535"/>
+                        </DockPanel>
+
+                        <!-- 位号（仅Bit类型显示） -->
+                        <DockPanel LastChildFill="True" IsVisible="{Binding ShowBitEditor}">
+                            <TextBlock DockPanel.Dock="Left" Text="位号:" Width="60" VerticalAlignment="Center"/>
+                            <NumericUpDown Value="{Binding EditBitNumber, Mode=TwoWay}"
+                                           Minimum="0" Maximum="7"/>
+                        </DockPanel>
+
+                        <!-- 地址预览 -->
+                        <Border Background="#F5F5F5" Padding="10" CornerRadius="4" Margin="0,4,0,0">
+                            <StackPanel>
+                                <TextBlock Text="生成的地址:" FontSize="11" Foreground="#888"/>
+                                <TextBlock Text="{Binding AddressPreview}" FontWeight="Bold" FontSize="14"
+                                           Foreground="#0066CC" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 应用地址按钮 -->
+                        <Button Content="应用地址"
+                                Command="{Binding ApplyAddressCommand}"
+                                HorizontalAlignment="Stretch"
+                                Padding="8,6"
+                                Margin="0,4,0,0"/>
+
+                        <!-- 其他属性 -->
+                        <TextBlock Text="其他属性" FontWeight="SemiBold" Foreground="#666" Margin="0,12,0,4"/>
+
+                        <!-- 长度 -->
+                        <DockPanel LastChildFill="True">
+                            <TextBlock DockPanel.Dock="Left" Text="长度:" Width="60" VerticalAlignment="Center"/>
+                            <NumericUpDown Value="{Binding SelectedDataItem.Length, Mode=TwoWay}"
+                                           Minimum="1" Maximum="65535"/>
+                        </DockPanel>
+
+                        <!-- 备注 -->
+                        <StackPanel>
+                            <TextBlock Text="备注:" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedDataItem.Remark, Mode=TwoWay}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     Height="60"/>
+                        </StackPanel>
+
+                        <!-- 保存提醒 -->
+                        <TextBlock Text="修改后请点击右上角保存配置按钮保存更改"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,12,0,0"
+                                   Foreground="Red"
+                                   FontSize="11"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 底部状态栏 -->
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1"
+                        Content="应用并关闭"
+                        Command="{Binding ApplyAndCloseCommand}"
+                        Background="#2196F3"
+                        Foreground="White"
+                        Padding="15,8"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

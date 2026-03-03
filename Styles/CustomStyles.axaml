@@ -1,0 +1,51 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 数据项样式 -->
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}"/>
+    </Style>
+
+    <!-- 日志面板样式 -->
+    <Style Selector="ListBox.log-list">
+        <Setter Property="Background" Value="{DynamicResource SystemAltLowColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- 按钮样式 -->
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight1}"/>
+    </Style>
+
+    <!-- 状态指示灯样式 -->
+    <Style Selector="Ellipse.status-connected">
+        <Setter Property="Fill" Value="Green"/>
+    </Style>
+
+    <Style Selector="Ellipse.status-disconnected">
+        <Setter Property="Fill" Value="Red"/>
+    </Style>
+
+    <!-- 数据网格样式 -->
+    <Style Selector="DataGridCell">
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemChromeGrayColor}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+
+    <Style Selector="DataGridCell:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight3}"/>
+    </Style>
+
+    <!-- 只读文本框样式 -->
+    <Style Selector="TextBox.readonly">
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="Background" Value="{DynamicResource SystemAltLowColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+</Styles>

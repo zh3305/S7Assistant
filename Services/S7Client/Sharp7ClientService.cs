@@ -150,6 +150,65 @@ public sealed class Sharp7ClientService : IS7ClientService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 批量读取指定长度的字节数组
+    /// </summary>
+    public async Task<byte[]> ReadBytesAsync(
+        S7Address address,
+        int length,
+        CancellationToken cancellationToken = default)
+    {
+        if (!IsConnected)
+            throw new InvalidOperationException("未连接到PLC，无法读取数据");
+
+        if (length <= 0)
+            throw new ArgumentException("读取长度必须大于0", nameof(length));
+
+        _stopwatch.Restart();
+
+        try
+        {
+            byte[] buffer = new byte[length];
+            int result;
+
+            if (address.Area == S7AreaType.DB && address.DBNumber.HasValue)
+            {
+                result = await Task.Run(() => _client.DBRead(address.DBNumber.Value, address.Offset, length, buffer), cancellationToken);
+            }
+            else
+            {
+                int area = address.Area switch
+                {
+                    S7AreaType.I => 0x81,
+                    S7AreaType.Q => 0x82,
+                    S7AreaType.M => 0x83,
+                    S7AreaType.T => 0x85,
+                    S7AreaType.C => 0x86,
+                    _ => throw new NotSupportedException($"不支持的内存区域: {address.Area}")
+                };
+                int wordLen = length / 2;
+                if (wordLen < 1) wordLen = 1;
+                result = await Task.Run(() => _client.ReadArea(area, 0, address.Offset, wordLen, 0x02, buffer), cancellationToken);
+            }
+
+            if (result != 0)
+            {
+                throw new IOException(
+                    $"批量读取失败: {_client.ErrorText(result)} (地址: {address}, 长度: {length})");
+            }
+
+            _stopwatch.Stop();
+            LastCommunicationTime = (int)_stopwatch.ElapsedMilliseconds;
+
+            return buffer;
+        }
+        catch
+        {
+            _stopwatch.Stop();
+            throw;
+        }
+    }
+
     public async Task<Dictionary<S7Address, (object Value, byte[] RawValue)>> ReadMultipleAsync(
         IEnumerable<(S7Address address, S7DataType dataType)> items,
         CancellationToken cancellationToken = default)

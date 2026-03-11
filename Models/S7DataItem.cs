@@ -51,7 +51,7 @@ public sealed partial class S7DataItem : ObservableObject
     /// </summary>
     [JsonIgnore]
     public string HexValue => RawValue != null
-        ? BitConverter.ToString(RawValue).Replace("-", " ")
+        ? BitConverter.ToString(RawValue).Replace("-", "")
         : "--";
 
     // ==================== 类型与地址 ====================
@@ -60,13 +60,37 @@ public sealed partial class S7DataItem : ObservableObject
     /// 数据类型
     /// </summary>
     [ObservableProperty]
-    private S7DataType _type = S7DataType.Int;
+    private S7DataType _type;
 
     /// <summary>
-    /// PLC地址
+    /// PLC地址（兼容旧配置格式）
     /// </summary>
     [ObservableProperty]
     private string _address = string.Empty;
+
+    /// <summary>
+    /// 字节偏移量（相对于Package的起始地址）
+    /// </summary>
+    [ObservableProperty]
+    private int _offset;
+
+    /// <summary>
+    /// 位偏移（仅Bit类型有效，0-7）
+    /// </summary>
+    [ObservableProperty]
+    private int? _bitOffset;
+
+    /// <summary>
+    /// 所属分组名称
+    /// </summary>
+    [ObservableProperty]
+    private string _groupName = string.Empty;
+
+    /// <summary>
+    /// 完整地址（Package起始地址 + 偏移量）
+    /// </summary>
+    [ObservableProperty]
+    private string _fullAddress = string.Empty;
 
     /// <summary>
     /// 解析后的地址对象（惰性求值）
@@ -83,13 +107,13 @@ public sealed partial class S7DataItem : ObservableObject
     /// 数据长度
     /// </summary>
     [ObservableProperty]
-    private int _length = 1;
+    private int _length;
 
     /// <summary>
     /// DB块编号（用于DB类型地址）
     /// </summary>
     [ObservableProperty]
-    private int _dBNumber = 1;
+    private int _dBNumber;
 
     // ==================== 扩展属性 ====================
 

@@ -1,7 +1,9 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using S7Assistant.ViewModels;
+using System.Collections.Specialized;
 
 namespace S7Assistant.Views;
 
@@ -13,6 +15,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
     }
 
     private void InitializeComponent()
@@ -21,17 +24,28 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// 数据项双击事件
+    /// DataContext 改变时订阅日志集合变化
     /// </summary>
-    public void OnDataItemDoubleClick(object? sender, RoutedEventArgs e)
+    private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        // 双击数据项时触发编辑命令
-        if (DataContext is ViewModels.MainWindowViewModel vm && sender is ListBox listBox)
+        if (DataContext is MainWindowViewModel vm)
         {
-            if (listBox.SelectedItem is Models.S7DataItem item)
+            vm.Logs.CollectionChanged += OnLogsCollectionChanged;
+        }
+    }
+
+    /// <summary>
+    /// 日志集合变化时自动滚动到底部
+    /// </summary>
+    private void OnLogsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                vm.EditSelectedItemCommand.Execute(item);
-            }
+                var scrollViewer = this.FindControl<ScrollViewer>("LogScrollViewer");
+                scrollViewer?.ScrollToEnd();
+            });
         }
     }
 }

@@ -2,6 +2,7 @@ using S7Assistant.Core.Interfaces;
 using S7Assistant.Models;
 using S7Assistant.Services;
 using S7Assistant.Services.S7Client;
+using S7Assistant.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,6 +15,8 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Specialized;
+using Avalonia.Collections;
 
 namespace S7Assistant.ViewModels;
 
@@ -30,7 +33,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private IS7ClientService? _currentClient;
     private CancellationTokenSource? _monitoringCts;
     private readonly object _lockObject = new();
-    private Core.Interfaces.IDialogService? _dialogService;
+    private IDialogService? _dialogService;
     private Window? _mainWindow;
 
     #region 属性
@@ -106,9 +109,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _selectedConfigFile = "";
 
     /// <summary>
-    /// 数据项集合
+    /// 数据包集合（用于Package格式的配置)
     /// </summary>
-    public ObservableCollection<S7DataItem> DataItems { get; } = new();
+    public ObservableCollection<S7DataPackage> DataPackages { get; } = new();
+
+    private DataGridCollectionView? _allDataItemsView;
+
+    /// <summary>
+    /// 所有数据项（带分组的集合视图，用于DataGrid显示）
+    /// </summary>
+    public DataGridCollectionView AllDataItems
+    {
+        get
+        {
+            var items = new List<S7DataItem>();
+            foreach (var package in DataPackages)
+            {
+                foreach (var item in package.Items)
+                {
+                    item.GroupName = package.Name;
+                    items.Add(item);
+                }
+            }
+
+            _allDataItemsView = new DataGridCollectionView(items);
+            _allDataItemsView.GroupDescriptions.Add(new DataGridPathGroupDescription("GroupName"));
+            return _allDataItemsView;
+        }
+    }
 
     /// <summary>
     /// 日志集合
@@ -162,7 +190,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ConfigService configService,
         ExcelService excelService,
         Func<S7ProviderType, IS7ClientService> clientFactory,
-        Core.Interfaces.IDialogService? dialogService = null)
+        IDialogService? dialogService = null)
     {
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _configService = configService ?? throw new ArgumentNullException(nameof(configService));
@@ -250,37 +278,60 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 加载选中的配置文件
-    /// </summary>
+    /// 加载选中的配置文件（支持Package格式和    /// </summary>
     private async Task LoadSelectedConfigAsync(string configName)
     {
         try
         {
-        if (string.IsNullOrEmpty(configName))
-            return;
+            if (string.IsNullOrEmpty(configName))
+                return;
 
-        var fileName = configName.EndsWith(".json") ? configName : $"{configName}.json";
-        var items = await _configService.LoadConfigAsync(fileName);
+            var fileName = configName.EndsWith(".json") ? configName : $"{configName}.json";
+            var packages = await _configService.LoadPackagesAsync(fileName);
 
-        DataItems.Clear();
-        foreach (var item in items)
-        {
-            DataItems.Add(item);
+            DataPackages.Clear();
+            foreach (var package in packages)
+            {
+                package.UpdateFullAddresses();
+                DataPackages.Add(package);
+            }
+
+            // 通知 AllDataItems 属性已变更
+            OnPropertyChanged(nameof(AllDataItems));
+
+            // 统计数据项数量
+            var totalItems = packages.Sum(p => p.Items.Count);
+            _logService.Log($"已加载配置: {configName}, 共 {packages.Count} 个数据包, {totalItems} 个数据项", LogLevel.Info);
+            StatusMessage = $"已加载 {totalItems} 个数据项";
         }
+        catch (Exception ex)
+        {
+            _logService.Log($"加载配置失败: {ex.Message}", LogLevel.Error);
+        }
+    }
 
-        _logService.Log($"已加载配置: {configName}, 共 {items.Count} 个数据项", LogLevel.Info);
-        StatusMessage = $"已加载 {items.Count} 个数据项";
-    }
-    catch (Exception ex)
+    /// <summary>
+    /// 从数据包中获取所有数据项的扁平化列表
+    /// </summary>
+    private List<S7DataItem> GetAllDataItemsFromPackages()
     {
-        _logService.Log($"加载配置失败: {ex.Message}", LogLevel.Error);
+        var items = new List<S7DataItem>();
+        foreach (var package in DataPackages)
+        {
+            foreach (var item in package.Items)
+            {
+                // 设置分组名称用于分组显示
+                item.GroupName = package.Name;
+                items.Add(item);
+            }
+        }
+        return items;
     }
-}
 
 /// <summary>
 /// 设置对话框服务（由窗口初始化后调用）
 /// </summary>
-    internal void SetDialogService(Core.Interfaces.IDialogService dialogService, Window mainWindow)
+    internal void SetDialogService(IDialogService dialogService, Window mainWindow)
     {
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
@@ -346,7 +397,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsMonitoring = false;
             StatusMessage = "连接失败";
             _logService.Log($"连接失败: {ex.Message}", LogLevel.Error, ex.StackTrace);
-            throw;
         }
     }
 
@@ -454,13 +504,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var newItem = new S7DataItem
         {
-            Name = $"新数据项{DataItems.Count + 1}",
+            Name = $"新数据项{GetAllDataItemsFromPackages().Count + 1}",
             Type = S7DataType.Bit,
             Address = "M0.0",
             Length = 1
         };
 
-        DataItems.Add(newItem);
+        // 添加到第一个Package或创建新的Package
+        if (DataPackages.Count == 0)
+        {
+            var newPackage = new S7DataPackage { Name = "默认包" };
+            newPackage.Items.Add(newItem);
+            DataPackages.Add(newPackage);
+        }
+        else
+        {
+            DataPackages[0].Items.Add(newItem);
+        }
+
         SelectedItem = newItem;
         _logService.Log($"添加数据项: {newItem.Name}", LogLevel.Info);
     }
@@ -487,7 +548,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
             throw new InvalidOperationException("没有选中的数据项");
 
         var name = SelectedItem.Name;
-        DataItems.Remove(SelectedItem);
+
+        // 从所有Package中查找并删除
+        foreach (var package in DataPackages)
+        {
+            if (package.Items.Remove(SelectedItem))
+            {
+                break;
+            }
+        }
+
         _logService.Log($"删除数据项: {name}", LogLevel.Info);
     }
 
@@ -538,7 +608,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 全部读取命令
+    /// 全部读取命令（按Package批量读取）
     /// </summary>
     [RelayCommand(CanExecute = nameof(IsConnected))]
     private async Task ReadAllAsync()
@@ -550,25 +620,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         StatusMessage = "正在读取全部数据...";
-        _logService.Log($"开始读取全部数据，共 {DataItems.Count} 项", LogLevel.Info);
+        var totalItems = DataPackages.Sum(p => p.Items.Count);
+        _logService.Log($"开始读取全部数据，共 {DataPackages.Count} 个数据包, {totalItems} 个数据项", LogLevel.Info);
 
-        var readItems = DataItems.ToList();
         var errors = 0;
         var success = 0;
 
-        foreach (var item in readItems)
+        // 按Package批量读取
+        foreach (var package in DataPackages)
         {
             try
             {
-                var address = S7Address.Parse(item.Address);
-                var (value, _) = await _currentClient.ReadAsync(address, item.Type);
-                item.CurrentValue = value;
-                success++;
+                // 批量读取整个Package的数据
+                var buffer = await _currentClient.ReadBytesAsync(
+                    package.ReadAddress,
+                    package.Length);
+
+                // 从缓冲区解析所有数据项的值
+                package.UpdateItemsFromBuffer(buffer);
+                success += package.Items.Count;
             }
             catch (Exception ex)
             {
-                errors++;
-                _logService.Log($"读取失败: {item.Name} - {ex.Message}", LogLevel.Error);
+                errors += package.Items.Count;
+                _logService.Log($"Package读取失败: {package.Name} - {ex.Message}", LogLevel.Error);
             }
         }
 
@@ -624,7 +699,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _ = Task.Run(() => MonitoringLoop(_monitoringCts.Token));
 
         StatusMessage = "监视已启动";
-        _logService.Log($"启动监视，间隔: {MonitorInterval}ms，共 {DataItems.Count} 个数据项", LogLevel.Info);
+        var totalItems = DataPackages.Sum(p => p.Items.Count);
+        _logService.Log($"启动监视，间隔: {MonitorInterval}ms，共 {DataPackages.Count} 个数据包, {totalItems} 个数据项", LogLevel.Info);
     }
 
     /// <summary>
@@ -650,7 +726,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 监视循环
+    /// 监视循环（按Package批量读取）
     /// </summary>
     private async Task MonitoringLoop(CancellationToken cancellationToken)
     {
@@ -663,29 +739,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
             loopCount++;
             try
             {
-                var readItems = DataItems.ToList();
                 int successCount = 0;
                 int failCount = 0;
 
-                foreach (var item in readItems)
+                // 按Package批量读取
+                foreach (var package in DataPackages)
                 {
                     if (cancellationToken.IsCancellationRequested)
                         break;
 
                     try
                     {
-                        var address = S7Address.Parse(item.Address);
-                        var (value, _) = await _currentClient.ReadAsync(address, item.Type, cancellationToken);
-                        item.CurrentValue = value;
-                        successCount++;
+                        // 批量读取整个Package的数据
+                        var buffer = await _currentClient.ReadBytesAsync(
+                            package.ReadAddress,
+                            package.Length,
+                            cancellationToken);
+
+                        // 从缓冲区解析所有数据项的值
+                        package.UpdateItemsFromBuffer(buffer);
+                        successCount += package.Items.Count;
                     }
                     catch (Exception ex)
                     {
-                        failCount++;
-                        // 单个读取失败不影响其他项，每10次循环记录一次
+                        failCount += package.Items.Count;
+                        // Package读取失败，每10次循环记录一次
                         if (loopCount % 10 == 0)
                         {
-                            _logService.Log($"监视读取失败: {item.Name} - {ex.Message}", LogLevel.Warning);
+                            _logService.Log($"Package读取失败: {package.Name} - {ex.Message}", LogLevel.Warning);
                         }
                     }
                 }
@@ -695,7 +776,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 // 每10次循环记录一次状态
                 if (loopCount % 10 == 0)
                 {
-                    _logService.Log($"监视循环 #{loopCount}: 成功 {successCount}, 失败 {failCount}, 耗时 {LastCommunicationTime}ms", LogLevel.Info);
+                    var totalItems = DataPackages.Sum(p => p.Items.Count);
+                    _logService.Log($"监视循环 #{loopCount}: 成功 {successCount}, 失败 {failCount}, 耗时 {LastCommunicationTime}ms (按{DataPackages.Count}个Package读取)", LogLevel.Info);
                 }
 
                 if (failCount > 0)
@@ -749,14 +831,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            var window = new Views.ConfigurationManagerWindow(items =>
+            var window = new Views.ConfigurationManagerWindow(packages =>
             {
-                DataItems.Clear();
-                foreach (var item in items)
+                DataPackages.Clear();
+                foreach (var package in packages)
                 {
-                    DataItems.Add(item);
+                    DataPackages.Add(package);
                 }
-                _logService.Log($"已加载配置: {items.Count} 个数据项", LogLevel.Info);
+                OnPropertyChanged(nameof(AllDataItems));
+                _logService.Log($"已加载配置: {packages.Count} 个数据包", LogLevel.Info);
             });
 
             await window.ShowDialog(_mainWindow);
@@ -800,11 +883,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             var items = await _excelService.ImportFromExcelAsync(filePath);
-            DataItems.Clear();
+            DataPackages.Clear();
+
+            // 将所有items放入一个Package
+            var package = new S7DataPackage { Name = "导入的数据" };
             foreach (var item in items)
             {
-                DataItems.Add(item);
+                package.Items.Add(item);
             }
+            DataPackages.Add(package);
 
             _logService.Log($"从Excel导入: {items.Count} 个数据项", LogLevel.Info);
             StatusMessage = $"已导入 {items.Count} 个数据项";
@@ -842,7 +929,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            var items = DataItems.ToList();
+            var items = GetAllDataItemsFromPackages();
             await _excelService.ExportToExcelAsync(filePath, items);
 
             _logService.Log($"已导出到Excel: {items.Count} 个数据项", LogLevel.Info);
@@ -880,15 +967,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             var fileName = Path.GetFileName(filePath);
-            var items = await _configService.LoadConfigAsync(fileName);
-            DataItems.Clear();
-            foreach (var item in items)
+            var packages = await _configService.LoadPackagesAsync(fileName);
+            DataPackages.Clear();
+            foreach (var package in packages)
             {
-                DataItems.Add(item);
+                DataPackages.Add(package);
             }
 
-            _logService.Log($"加载配置: {fileName}, {items.Count} 个数据项", LogLevel.Info);
-            StatusMessage = $"已加载 {items.Count} 个数据项";
+            var totalItems = packages.Sum(p => p.Items.Count);
+            _logService.Log($"加载配置: {fileName}, {totalItems} 个数据项", LogLevel.Info);
+            StatusMessage = $"已加载 {totalItems} 个数据项";
         }
         catch (Exception ex)
         {
@@ -924,11 +1012,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             var fileName = Path.GetFileName(filePath);
-            var items = DataItems.ToList();
-            await _configService.SaveConfigAsync(fileName, items);
+            await _configService.SavePackagesAsync(fileName, DataPackages.ToList());
 
-            _logService.Log($"保存配置: {fileName}, {items.Count} 个数据项", LogLevel.Info);
-            StatusMessage = $"已保存 {items.Count} 个数据项";
+            var totalItems = DataPackages.Sum(p => p.Items.Count);
+            _logService.Log($"保存配置: {fileName}, {totalItems} 个数据项", LogLevel.Info);
+            StatusMessage = $"已保存 {totalItems} 个数据项";
         }
         catch (Exception ex)
         {

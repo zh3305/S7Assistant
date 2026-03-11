@@ -81,6 +81,20 @@ public interface IS7ClientService : IDisposable
         IEnumerable<(S7Address address, S7DataType dataType)> items,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 批量读取指定长度的字节数组
+    /// </summary>
+    /// <param name="address">起始地址</param>
+    /// <param name="length">读取长度（字节数）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>读取到的字节数组</returns>
+    /// <exception cref="InvalidOperationException">未连接时抛出</exception>
+    /// <exception cref="IOException">读取失败时抛出</exception>
+    Task<byte[]> ReadBytesAsync(
+        S7Address address,
+        int length,
+        CancellationToken cancellationToken = default);
+
     // ==================== 数据写入 ====================
 
     /// <summary>

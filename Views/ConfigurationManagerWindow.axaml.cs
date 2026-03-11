@@ -27,7 +27,7 @@ public partial class ConfigurationManagerWindow : Window
     /// <summary>
     /// 运行时构造函数
     /// </summary>
-    public ConfigurationManagerWindow(Action<List<S7DataItem>> loadCallback)
+    public ConfigurationManagerWindow(Action<List<S7DataPackage>> loadCallback)
     {
         InitializeComponent();
 

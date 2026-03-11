@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 namespace S7Assistant.ViewModels;
 
 /// <summary>
-/// 配置管理器视图模型
+/// 配置管理器视图模型 - 支持 Package 格式
 /// </summary>
 public sealed partial class ConfigurationManagerViewModel : ObservableObject
 {
     private readonly ConfigService _configService;
-    private Action<List<S7DataItem>>? _loadCallback;
+    private Action<List<S7DataPackage>>? _loadCallback;
     private Action? _closeCallback;
 
     /// <summary>
@@ -29,7 +29,13 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     /// 选中的配置文件
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanLoadSelected))]
     private string? _selectedConfigFile;
+
+    /// <summary>
+    /// 是否可以加载选中配置
+    /// </summary>
+    public bool CanLoadSelected => !string.IsNullOrEmpty(SelectedConfigFile);
 
     /// <summary>
     /// 新配置名称
@@ -38,17 +44,27 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     private string _newConfigName = "";
 
     /// <summary>
-    /// 当前数据项列表（只读集合，使用 Clear/Add 更新内容以正确触发 UI 绑定）
+    /// 当前 Package 列表
     /// </summary>
-    public ObservableCollection<S7DataItem> CurrentDataItems { get; } = new();
+    public ObservableCollection<S7DataPackage> CurrentPackages { get; } = new();
 
     /// <summary>
-    /// 选中的数据项
+    /// 选中的 Package
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPackageSelected))]
+    private S7DataPackage? _selectedPackage;
+
+    /// <summary>
+    /// 是否有选中的 Package
+    /// </summary>
+    public bool IsPackageSelected => SelectedPackage != null;
+
+    /// <summary>
+    /// 选中的数据项（Package 内）
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsItemSelected))]
-    [NotifyPropertyChangedFor(nameof(ShowBitEditor))]
-    [NotifyPropertyChangedFor(nameof(AddressPreview))]
     private S7DataItem? _selectedDataItem;
 
     /// <summary>
@@ -62,12 +78,37 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "就绪";
 
-    /// <summary>
-    /// S7数据类型列表（枚举值数组）
-    /// </summary>
-    public S7DataType[] S7DataTypes { get; } = Enum.GetValues(typeof(S7DataType)).Cast<S7DataType>().ToArray();
+    #region Package 编辑属性
 
-    #region 地址编辑属性
+    /// <summary>
+    /// 编辑中的 Package 名称
+    /// </summary>
+    [ObservableProperty]
+    private string _editPackageName = "";
+
+    /// <summary>
+    /// 编辑中的 DB 号
+    /// </summary>
+    [ObservableProperty]
+    private int _editDbNumber = 1;
+
+    /// <summary>
+    /// 编辑中的区域类型
+    /// </summary>
+    [ObservableProperty]
+    private S7AreaType _editArea = S7AreaType.DB;
+
+    /// <summary>
+    /// 编辑中的起始地址
+    /// </summary>
+    [ObservableProperty]
+    private int _editStartAddress;
+
+    /// <summary>
+    /// 编辑中的长度
+    /// </summary>
+    [ObservableProperty]
+    private int _editLength;
 
     /// <summary>
     /// 区域类型列表
@@ -75,90 +116,53 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     public S7AreaType[] AreaTypes { get; } = Enum.GetValues(typeof(S7AreaType)).Cast<S7AreaType>().ToArray();
 
     /// <summary>
-    /// 选中的区域类型
+    /// 数据类型列表
+    /// </summary>
+    public S7DataType[] DataTypes { get; } = Enum.GetValues(typeof(S7DataType)).Cast<S7DataType>().ToArray();
+
+    #endregion
+
+    #region 数据项编辑属性
+
+    /// <summary>
+    /// 编辑中的数据项名称
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDbAddress))]
-    [NotifyPropertyChangedFor(nameof(AddressPreview))]
-    private S7AreaType _selectedAreaType = S7AreaType.DB;
+    private string _editItemName = "";
 
     /// <summary>
-    /// DB编号
+    /// 编辑中的数据项类型
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AddressPreview))]
-    private int _editDbNumber = 1;
+    private S7DataType _editItemType = S7DataType.Byte;
 
     /// <summary>
-    /// 偏移量
+    /// 编辑中的偏移量
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AddressPreview))]
-    private int _editOffset = 0;
+    private int _editItemOffset;
 
     /// <summary>
-    /// 位号（仅Bit类型）
+    /// 编辑中的位偏移
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AddressPreview))]
-    private int _editBitNumber = 0;
+    private int? _editItemBitOffset;
 
     /// <summary>
-    /// 是否为DB类型
+    /// 编辑中的备注
     /// </summary>
-    public bool IsDbAddress => SelectedAreaType == S7AreaType.DB;
+    [ObservableProperty]
+    private string _editItemRemark = "";
 
     /// <summary>
-    /// 是否显示位号编辑器
+    /// 是否显示位偏移编辑器
     /// </summary>
-    public bool ShowBitEditor => SelectedDataItem?.Type == S7DataType.Bit;
-
-    /// <summary>
-    /// 地址预览
-    /// </summary>
-    public string AddressPreview => GenerateAddressPreview();
-
-    /// <summary>
-    /// 生成地址预览字符串
-    /// </summary>
-    private string GenerateAddressPreview()
-    {
-        if (SelectedDataItem == null)
-            return "";
-
-        if (SelectedAreaType == S7AreaType.DB)
-        {
-            return ShowBitEditor
-                ? $"DB{EditDbNumber}.DBX{EditOffset}.{EditBitNumber}"
-                : $"DB{EditDbNumber}.DBD{EditOffset}";
-        }
-        else
-        {
-            var prefix = SelectedAreaType.GetPrefix();
-            return ShowBitEditor
-                ? $"{prefix}{EditOffset}.{EditBitNumber}"
-                : $"{prefix}{EditOffset}";
-        }
-    }
-
-    /// <summary>
-    /// 应用编辑的地址到选中项
-    /// </summary>
-    [RelayCommand]
-    private void ApplyAddress()
-    {
-        if (SelectedDataItem == null)
-            return;
-
-        SelectedDataItem.Address = AddressPreview;
-        SelectedDataItem.DBNumber = IsDbAddress ? EditDbNumber : 0;
-        StatusMessage = $"地址已更新: {AddressPreview}";
-    }
+    public bool ShowBitOffsetEditor => EditItemType == S7DataType.Bit;
 
     #endregion
 
     /// <summary>
-    /// 构造函数（用于 DI）
+    /// 构造函数
     /// </summary>
     public ConfigurationManagerViewModel(ConfigService configService)
     {
@@ -168,120 +172,50 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     /// <summary>
     /// 设置回调函数
     /// </summary>
-    public void SetCallbacks(Action<List<S7DataItem>> loadCallback, Action closeCallback)
+    public void SetCallbacks(Action<List<S7DataPackage>> loadCallback, Action closeCallback)
     {
         _loadCallback = loadCallback ?? throw new ArgumentNullException(nameof(loadCallback));
         _closeCallback = closeCallback ?? throw new ArgumentNullException(nameof(closeCallback));
     }
 
     /// <summary>
-    /// 选中数据项改变时，更新地址编辑器
-    /// </summary>
-    partial void OnSelectedDataItemChanged(S7DataItem? value)
-    {
-        if (value != null)
-        {
-            // 解析现有地址并更新编辑器
-            ParseAddressToEditor(value.Address);
-        }
-    }
-
-    /// <summary>
-    /// 解析地址到编辑器字段
-    /// </summary>
-    private void ParseAddressToEditor(string address)
-    {
-        if (string.IsNullOrEmpty(address))
-        {
-            SelectedAreaType = S7AreaType.DB;
-            EditDbNumber = 1;
-            EditOffset = 0;
-            EditBitNumber = 0;
-            return;
-        }
-
-        try
-        {
-            // 尝试解析 DB 类型地址（如 DB1.DBX9.0 或 DB1.DBD10）
-            if (address.StartsWith("DB", StringComparison.OrdinalIgnoreCase))
-            {
-                SelectedAreaType = S7AreaType.DB;
-
-                var parts = address.Split('.');
-                if (parts.Length >= 1)
-                {
-                    // 解析 DB 号
-                    var dbPart = parts[0].Substring(2);
-                    if (int.TryParse(dbPart, out var dbNum))
-                        EditDbNumber = dbNum;
-                }
-
-                if (parts.Length >= 2)
-                {
-                    // 解析偏移量和位号
-                    var addrPart = parts[1];
-                    if (addrPart.StartsWith("DBX", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var offsetPart = addrPart.Substring(3);
-                        var bitParts = offsetPart.Split('.');
-                        if (bitParts.Length >= 1 && int.TryParse(bitParts[0], out var offset))
-                            EditOffset = offset;
-                        if (bitParts.Length >= 2 && int.TryParse(bitParts[1], out var bit))
-                            EditBitNumber = bit;
-                    }
-                    else if (addrPart.StartsWith("DBD", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (int.TryParse(addrPart.Substring(3), out var offset))
-                            EditOffset = offset;
-                    }
-                    else if (addrPart.StartsWith("DBW", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (int.TryParse(addrPart.Substring(3), out var offset))
-                            EditOffset = offset;
-                    }
-                    else if (addrPart.StartsWith("DBB", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (int.TryParse(addrPart.Substring(3), out var offset))
-                            EditOffset = offset;
-                    }
-                }
-            }
-            else
-            {
-                // 解析非 DB 类型地址（如 M0.0 或 I10）
-                var prefix = address[0].ToString().ToUpper();
-                SelectedAreaType = prefix switch
-                {
-                    "I" => S7AreaType.I,
-                    "Q" => S7AreaType.Q,
-                    "M" => S7AreaType.M,
-                    "T" => S7AreaType.T,
-                    "C" => S7AreaType.C,
-                    _ => S7AreaType.DB
-                };
-
-                var rest = address.Substring(1);
-                var bitParts = rest.Split('.');
-                if (bitParts.Length >= 1 && int.TryParse(bitParts[0], out var offset))
-                    EditOffset = offset;
-                if (bitParts.Length >= 2 && int.TryParse(bitParts[1], out var bit))
-                    EditBitNumber = bit;
-            }
-        }
-        catch
-        {
-            // 解析失败，使用默认值
-        }
-    }
-
-    /// <summary>
-    /// 配置文件选择改变时自动加载
+    /// 选中配置文件改变时加载
     /// </summary>
     partial void OnSelectedConfigFileChanged(string? value)
     {
         if (!string.IsNullOrEmpty(value))
         {
             _ = LoadSelectedConfigAsync();
+        }
+    }
+
+    /// <summary>
+    /// 选中 Package 改变时更新编辑器
+    /// </summary>
+    partial void OnSelectedPackageChanged(S7DataPackage? value)
+    {
+        if (value != null)
+        {
+            EditPackageName = value.Name;
+            EditDbNumber = value.DbNumber;
+            EditArea = value.Area;
+            EditStartAddress = value.StartAddress;
+            EditLength = value.Length;
+        }
+    }
+
+    /// <summary>
+    /// 选中数据项改变时更新编辑器
+    /// </summary>
+    partial void OnSelectedDataItemChanged(S7DataItem? value)
+    {
+        if (value != null)
+        {
+            EditItemName = value.Name;
+            EditItemType = value.Type;
+            EditItemOffset = value.Offset;
+            EditItemBitOffset = value.BitOffset;
+            EditItemRemark = value.Remark;
         }
     }
 
@@ -319,16 +253,17 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
         {
             StatusMessage = $"正在加载: {SelectedConfigFile}";
             var fileName = SelectedConfigFile.EndsWith(".json") ? SelectedConfigFile : $"{SelectedConfigFile}.json";
-            var items = await _configService.LoadConfigAsync(fileName);
+            var packages = await _configService.LoadPackagesAsync(fileName);
 
-            // 使用 Clear/Add 方式更新集合，确保 UI 绑定正确响应
-            CurrentDataItems.Clear();
-            foreach (var item in items)
+            CurrentPackages.Clear();
+            foreach (var package in packages)
             {
-                CurrentDataItems.Add(item);
+                CurrentPackages.Add(package);
             }
 
-            StatusMessage = $"已加载 {items.Count} 个数据项";
+            SelectedPackage = null;
+            SelectedDataItem = null;
+            StatusMessage = $"已加载 {packages.Count} 个数据包";
         }
         catch (Exception ex)
         {
@@ -351,9 +286,21 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
         try
         {
             var fileName = NewConfigName.EndsWith(".json") ? NewConfigName : $"{NewConfigName}.json";
-            await _configService.SaveConfigAsync(fileName, new List<S7DataItem>());
+            var samplePackages = new List<S7DataPackage>
+            {
+                new()
+                {
+                    Name = "数据包1",
+                    DbNumber = 1,
+                    Area = S7AreaType.DB,
+                    StartAddress = 0,
+                    Length = 10,
+                    Items = new ObservableCollection<S7DataItem>()
+                }
+            };
+            await _configService.SavePackagesAsync(fileName, samplePackages);
             await LoadConfigFilesAsync();
-            SelectedConfigFile = NewConfigName;
+            SelectedConfigFile = fileName;
             NewConfigName = "";
             StatusMessage = $"已创建配置: {fileName}";
         }
@@ -404,8 +351,8 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
         try
         {
             var fileName = SelectedConfigFile.EndsWith(".json") ? SelectedConfigFile : $"{SelectedConfigFile}.json";
-            var items = CurrentDataItems.ToList();
-            await _configService.SaveConfigAsync(fileName, items);
+            var packages = CurrentPackages.ToList();
+            await _configService.SavePackagesAsync(fileName, packages);
             StatusMessage = $"已保存配置: {SelectedConfigFile}";
         }
         catch (Exception ex)
@@ -414,16 +361,65 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
         }
     }
 
+    #region Package 操作
+
     /// <summary>
-    /// 从Excel导入
+    /// 添加 Package
     /// </summary>
     [RelayCommand]
-    private async Task ImportFromExcelAsync()
+    private void AddPackage()
     {
-        // TODO: 实现文件对话框导入Excel
-        StatusMessage = "Excel导入功能待实现";
-        await Task.CompletedTask;
+        var newPackage = new S7DataPackage
+        {
+            Name = $"数据包{CurrentPackages.Count + 1}",
+            DbNumber = 1,
+            Area = S7AreaType.DB,
+            StartAddress = 0,
+            Length = 10,
+            Items = new ObservableCollection<S7DataItem>()
+        };
+        CurrentPackages.Add(newPackage);
+        SelectedPackage = newPackage;
+        StatusMessage = $"已添加: {newPackage.Name}";
     }
+
+    /// <summary>
+    /// 删除选中 Package
+    /// </summary>
+    [RelayCommand]
+    private void DeleteSelectedPackage()
+    {
+        if (SelectedPackage == null)
+        {
+            StatusMessage = "请先选择数据包";
+            return;
+        }
+        var name = SelectedPackage.Name;
+        CurrentPackages.Remove(SelectedPackage);
+        StatusMessage = $"已删除: {name}";
+        SelectedPackage = null;
+    }
+
+    /// <summary>
+    /// 应用 Package 编辑
+    /// </summary>
+    [RelayCommand]
+    private void ApplyPackageEdit()
+    {
+        if (SelectedPackage == null)
+            return;
+
+        SelectedPackage.Name = EditPackageName;
+        SelectedPackage.DbNumber = EditDbNumber;
+        SelectedPackage.Area = EditArea;
+        SelectedPackage.StartAddress = EditStartAddress;
+        SelectedPackage.Length = EditLength;
+        StatusMessage = $"已更新数据包: {EditPackageName}";
+    }
+
+    #endregion
+
+    #region 数据项操作
 
     /// <summary>
     /// 添加数据项
@@ -431,15 +427,20 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     [RelayCommand]
     private void AddDataItem()
     {
+        if (SelectedPackage == null)
+        {
+            StatusMessage = "请先选择数据包";
+            return;
+        }
+
         var newItem = new S7DataItem
         {
-            Name = $"新数据项{CurrentDataItems.Count + 1}",
-            Type = S7DataType.Bit,
-            Address = "DB1.DBX0.0",
-            Length = 1,
-            DBNumber = 1
+            Name = $"数据项{SelectedPackage.Items.Count + 1}",
+            Type = S7DataType.Byte,
+            Offset = 0,
+            Remark = ""
         };
-        CurrentDataItems.Add(newItem);
+        SelectedPackage.Items.Add(newItem);
         SelectedDataItem = newItem;
         StatusMessage = $"已添加: {newItem.Name}";
     }
@@ -455,21 +456,36 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
             StatusMessage = "请先选择数据项";
             return;
         }
-        CurrentDataItems.Remove(SelectedDataItem);
-        StatusMessage = $"已删除: {SelectedDataItem.Name}";
+        if (SelectedPackage == null)
+        {
+            StatusMessage = "请先选择数据包";
+            return;
+        }
+
+        var name = SelectedDataItem.Name;
+        SelectedPackage.Items.Remove(SelectedDataItem);
+        StatusMessage = $"已删除: {name}";
         SelectedDataItem = null;
     }
 
     /// <summary>
-    /// 清空数据项列表
+    /// 应用数据项编辑
     /// </summary>
     [RelayCommand]
-    private void ClearDataItemsCommand()
+    private void ApplyDataItemEdit()
     {
-        CurrentDataItems.Clear();
-        SelectedDataItem = null;
-        StatusMessage = "已清空数据项列表";
+        if (SelectedDataItem == null)
+            return;
+
+        SelectedDataItem.Name = EditItemName;
+        SelectedDataItem.Type = EditItemType;
+        SelectedDataItem.Offset = EditItemOffset;
+        SelectedDataItem.BitOffset = EditItemBitOffset;
+        SelectedDataItem.Remark = EditItemRemark;
+        StatusMessage = $"已更新数据项: {EditItemName}";
     }
+
+    #endregion
 
     /// <summary>
     /// 应用并关闭
@@ -477,8 +493,8 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     [RelayCommand]
     private void ApplyAndClose()
     {
-        var items = CurrentDataItems.ToList();
-        _loadCallback?.Invoke(items);
+        var packages = CurrentPackages.ToList();
+        _loadCallback?.Invoke(packages);
         StatusMessage = "配置已应用";
         _closeCallback?.Invoke();
     }

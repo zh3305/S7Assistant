@@ -164,6 +164,53 @@ public sealed class S7NetPlusClientService : IS7ClientService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 批量读取指定长度的字节数组
+    /// </summary>
+    public async Task<byte[]> ReadBytesAsync(
+        S7Address address,
+        int length,
+        CancellationToken cancellationToken = default)
+    {
+        if (!IsConnected || _client == null)
+            throw new InvalidOperationException("未连接到PLC，无法读取数据");
+
+        if (length <= 0)
+            throw new ArgumentException("读取长度必须大于0", nameof(length));
+
+        _stopwatch.Restart();
+
+        try
+        {
+            byte[] buffer = await Task.Run(() => address.Area switch
+            {
+                S7AreaType.DB when address.DBNumber.HasValue =>
+                    _client.ReadBytes(DataType.DataBlock, address.DBNumber.Value, address.Offset, length),
+                S7AreaType.I =>
+                    _client.ReadBytes(DataType.Input, 0, address.Offset, length),
+                S7AreaType.Q =>
+                    _client.ReadBytes(DataType.Output, 0, address.Offset, length),
+                S7AreaType.M =>
+                    _client.ReadBytes(DataType.Memory, 0, address.Offset, length),
+                S7AreaType.T =>
+                    _client.ReadBytes(DataType.Timer, 0, address.Offset, length),
+                S7AreaType.C =>
+                    _client.ReadBytes(DataType.Counter, 0, address.Offset, length),
+                _ => throw new NotSupportedException($"不支持的内存区域: {address.Area}")
+            }, cancellationToken);
+
+            _stopwatch.Stop();
+            LastCommunicationTime = (int)_stopwatch.ElapsedMilliseconds;
+
+            return buffer;
+        }
+        catch (Exception ex)
+        {
+            _stopwatch.Stop();
+            throw new IOException($"批量读取数据失败: {ex.Message}", ex);
+        }
+    }
+
     public async Task<Dictionary<S7Address, (object Value, byte[] RawValue)>> ReadMultipleAsync(
         IEnumerable<(S7Address address, S7DataType dataType)> items,
         CancellationToken cancellationToken = default)

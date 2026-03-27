@@ -587,9 +587,36 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            _logService.Log($"开始写入: {item.Name} ({item.Address}) = {item.WriteValue}", LogLevel.Info);
+            // 通过 item 找到所属的 package，计算完整写入地址
+            var package = DataPackages.FirstOrDefault(p => p.Items.Contains(item));
+            S7Address address;
 
-            var address = S7Address.Parse(item.Address);
+            if (package != null)
+            {
+                // 根据 Package 的 Area 和 item 的 Offset 计算完整地址
+                var absoluteOffset = package.StartAddress + item.Offset;
+                address = package.Area switch
+                {
+                    S7AreaType.DB => S7Address.CreateDB(package.DbNumber, absoluteOffset, item.BitOffset),
+                    S7AreaType.I => S7Address.CreateInput(absoluteOffset, item.BitOffset),
+                    S7AreaType.Q => S7Address.CreateOutput(absoluteOffset, item.BitOffset),
+                    S7AreaType.M => S7Address.CreateMemory(absoluteOffset, item.BitOffset),
+                    _ => throw new NotSupportedException($"不支持的内存区域: {package.Area}")
+                };
+            }
+            else if (!string.IsNullOrWhiteSpace(item.Address))
+            {
+                // 降级：使用 item.Address（兼容旧配置）
+                address = S7Address.Parse(item.Address);
+            }
+            else
+            {
+                _logService.Log($"写入失败: 无法确定地址 ({item.Name})，数据项未关联到任何Package且无Address字段", LogLevel.Error);
+                return;
+            }
+
+            _logService.Log($"开始写入: {item.Name} ({address}) = {item.WriteValue}", LogLevel.Info);
+
             var value = ParseWriteValue(item.WriteValue, item.Type);
 
             await _currentClient.WriteAsync(address, item.Type, value);

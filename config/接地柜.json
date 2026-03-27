@@ -8,7 +8,7 @@
     "Items": [
       {
         "Name": "时间戳",
-        "Type": 0,
+        "Type": 4,
         "Offset": 0,
         "Remark": "系统时间戳字节"
       },
@@ -20,7 +20,7 @@
       },
       {
         "Name": "当前操作模式",
-        "Type": 0,
+        "Type": 1,
         "Offset": 8,
         "Remark": "1-手动,2-电动",
         "TypeValues": {
@@ -341,61 +341,61 @@
     "Items": [
       {
         "Name": "远程操作允许",
-        "Type": 0,
+        "Type": 1,
         "Offset": 0,
         "Remark": "远程操作验证码55"
       },
       {
         "Name": "合闸分闸命令",
-        "Type": 0,
+        "Type": 1,
         "Offset": 1,
         "Remark": "55合闸66分闸"
       },
       {
         "Name": "复位命令",
-        "Type": 0,
+        "Type": 1,
         "Offset": 2,
         "Remark": "66复位"
       },
       {
         "Name": "时间_年",
-        "Type": 0,
+        "Type": 1,
         "Offset": 46,
         "Remark": "授时年"
       },
       {
         "Name": "时间_月",
-        "Type": 0,
+        "Type": 1,
         "Offset": 47,
         "Remark": "授时月"
       },
       {
         "Name": "时间_日",
-        "Type": 0,
+        "Type": 1,
         "Offset": 48,
         "Remark": "授时日"
       },
       {
         "Name": "时间_时",
-        "Type": 0,
+        "Type": 1,
         "Offset": 49,
         "Remark": "授时时"
       },
       {
         "Name": "时间_分",
-        "Type": 0,
+        "Type": 1,
         "Offset": 50,
         "Remark": "授时分"
       },
       {
         "Name": "时间_秒",
-        "Type": 0,
+        "Type": 1,
         "Offset": 51,
         "Remark": "授时秒"
       },
       {
         "Name": "授时命令",
-        "Type": 0,
+        "Type": 1,
         "Offset": 52,
         "Remark": "=23表示开始授时"
       }

@@ -25,80 +25,95 @@
     <Grid RowDefinitions="Auto,Auto,*,150,Auto">
         <!-- 顶部工具栏 -->
         <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="16,10">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-                <!-- 左侧：连接信息和控制 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                    <!-- 连接状态指示 -->
-                    <Border CornerRadius="4" Padding="10,6" Background="#20FFFFFF">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Ellipse Width="10" Height="10"
-                                     Fill="{Binding IsConnected, Converter={StaticResource BoolToConnectionStatusConverter}}"
-                                     VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding IsConnected, Converter={StaticResource BoolToConnectionStatusConverter}}"
-                                       FontWeight="SemiBold" Foreground="White"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- IP地址 -->
-                    <Border CornerRadius="4" Padding="10,6" Background="#20FFFFFF">
-                        <TextBlock Foreground="White" VerticalAlignment="Center">
-                            <Run Text="IP:"/><Run Text="{Binding ConnectionConfig.Ip}" FontWeight="SemiBold"/>
-                        </TextBlock>
-                    </Border>
-                </StackPanel>
-
-                <!-- 中间：标题 -->
-                <TextBlock Grid.Column="1"
-                           Text="S7小助手V2.0"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           Foreground="White"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
-
-                <!-- 右侧：配置管理按钮 -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                    <Button Command="{Binding OpenConnectionSettingsCommand}"
-                            Content="连接设置"
-                            Padding="12,6"/>
-                    <Button Command="{Binding OpenConfigManagerCommand}"
-                            Content="配置管理"
-                            Padding="12,6"
-                            IsEnabled="{Binding !IsConnected}"/>
-                </StackPanel>
-            </Grid>
+            <TextBlock Text="S7小助手V2.0"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
         </Border>
 
         <!-- 设置面板 -->
         <Border Grid.Row="1" Padding="16,12" Background="{DynamicResource SystemAltMediumColor}"
                 BorderBrush="{DynamicResource SystemChromeGrayColor}" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto">
-                <!-- 配置选择 -->
-                <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                    <TextBlock Text="配置文件" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding ConfigFiles}"
-                              SelectedItem="{Binding SelectedConfigFile}"
-                              MinWidth="120"
-                              VerticalAlignment="Center"/>
+            <Grid ColumnDefinitions="Auto,1,Auto,Auto,Auto,Auto,*,Auto,Auto">
+                <!-- 内联链接配置 + 连接按钮 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,16,0" VerticalAlignment="Bottom">
+                    <!-- IP地址 -->
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="IP" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding ConnectionConfig.Ip}"
+                                 Watermark="192.168.1.1"
+                                 MinWidth="120"
+                                 VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- CPU类型 -->
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="CPU" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding CpuTypes}"
+                                  SelectedItem="{Binding ConnectionConfig.CpuType}"
+                                  MinWidth="100"
+                                  VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Rack/Slot 可编辑 -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4" Margin="0,0,8,0">
+                        <StackPanel Margin="0,0,4,0">
+                            <TextBlock Text="R" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                            <NumericUpDown Value="{Binding ConnectionConfig.Rack}"
+                                           Minimum="0" Maximum="7"
+                                           FormatString="0"
+                                           MinWidth="60"
+                                           VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,4,0">
+                            <TextBlock Text="S" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                            <NumericUpDown Value="{Binding ConnectionConfig.Slot}"
+                                           Minimum="0" Maximum="31"
+                                           FormatString="0"
+                                           MinWidth="60"
+                                           VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 连接/断开按钮 -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,0,0">
+                        <Button Command="{Binding ConnectCommand}"
+                                Content="连接"
+                                Padding="16,8"
+                                Background="{DynamicResource SystemAccentColor}"
+                                Foreground="White"
+                                IsEnabled="{Binding !IsConnected}"/>
+                        <Button Command="{Binding DisconnectCommand}"
+                                Content="断开"
+                                Padding="16,8"
+                                IsEnabled="{Binding IsConnected}"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <!-- 连接/断开按钮 -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
-                    <Button Command="{Binding ConnectCommand}"
-                            Content="连接"
-                            Padding="16,8"
-                            Background="{DynamicResource SystemAccentColor}"
-                            Foreground="White"
+                <!-- 分隔线 -->
+                <Border Grid.Column="1" Width="1" Background="#e5e7eb" Margin="0,0,16,0" VerticalAlignment="Stretch"/>
+
+                <!-- 配置选择 + 配置管理 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="0,0,16,0" VerticalAlignment="Bottom">
+                    <StackPanel>
+                        <TextBlock Text="配置文件" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding ConfigFiles}"
+                                  SelectedItem="{Binding SelectedConfigFile}"
+                                  MinWidth="120"
+                                  VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Command="{Binding OpenConfigManagerCommand}"
+                            Content="配置管理"
+                            Padding="12,6"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,0,0"
                             IsEnabled="{Binding !IsConnected}"/>
-                    <Button Command="{Binding DisconnectCommand}"
-                            Content="断开"
-                            Padding="16,8"
-                            IsEnabled="{Binding IsConnected}"/>
                 </StackPanel>
 
                 <!-- 监视间隔 -->
-                <StackPanel Grid.Column="2" Margin="0,0,16,0">
+                <StackPanel Grid.Column="3" Margin="0,0,16,0">
                     <TextBlock Text="监视间隔" FontSize="12" FontWeight="Medium" Foreground="#4b5563" Margin="0,0,0,4"/>
                     <ComboBox SelectedIndex="{Binding MonitorIntervalIndex}" MinWidth="100">
                         <ComboBoxItem Content="50ms"/>
@@ -110,7 +125,7 @@
                 </StackPanel>
 
                 <!-- 监视控制 -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
                     <Button Command="{Binding StartMonitoringCommand}"
                             Content="开始监视"
                             Padding="12,8"
@@ -122,7 +137,7 @@
                 </StackPanel>
 
                 <!-- 全局操作 -->
-                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
+                <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="8" Margin="0,0,16,0">
                     <Button Command="{Binding ReadAllCommand}"
                             Content="全部读取"
                             Padding="12,8"
@@ -134,7 +149,7 @@
                 </StackPanel>
 
                 <!-- 数据项计数 -->
-                <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4">
+                <StackPanel Grid.Column="8" Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="4">
                     <TextBlock Text="共" VerticalAlignment="Center" Foreground="#6b7280"/>
                     <TextBlock Text="{Binding AllDataItems.Count}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     <TextBlock Text="个数据项" VerticalAlignment="Center" Foreground="#6b7280"/>

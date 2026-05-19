@@ -180,6 +180,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "就绪";
 
+    /// <summary>
+    /// CPU类型列表
+    /// </summary>
+    public string[] CpuTypes { get; } = { "S7200Smart", "S7300", "S7400", "S71200", "S71500" };
+
     #endregion
 
     /// <summary>
@@ -241,6 +246,32 @@ public sealed partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             _logService.Log($"加载连接配置失败: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    /// <summary>
+    /// 连接配置变更时自动保存
+    /// </summary>
+    partial void OnConnectionConfigChanged(S7ConnectionConfig value)
+    {
+        if (value != null)
+        {
+            _ = SaveConnectionConfigAsync(value);
+        }
+    }
+
+    /// <summary>
+    /// 保存连接配置
+    /// </summary>
+    private async Task SaveConnectionConfigAsync(S7ConnectionConfig config)
+    {
+        try
+        {
+            await _configService.SaveConnectionConfigAsync(config);
+        }
+        catch (Exception ex)
+        {
+            _logService.Log($"保存连接配置失败: {ex.Message}", LogLevel.Warning);
         }
     }
 

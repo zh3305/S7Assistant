@@ -6,252 +6,196 @@
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="S7Assistant.Views.ConfigurationManagerWindow"
         x:DataType="vm:ConfigurationManagerViewModel"
-        Title="配置管理器"
+        Title="配置管理"
         Width="1100" Height="700"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource MainBg}">
 
     <Design.DataContext>
         <vm:ConfigurationManagerViewModel/>
     </Design.DataContext>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
+    <Grid RowDefinitions="Auto, *, Auto">
         <!-- 顶部工具栏 -->
-        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Padding="10">
+        <Border Grid.Row="0" Background="{StaticResource HeaderBg}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="16">
             <Grid ColumnDefinitions="*,Auto">
-                <!-- 配置管理区域 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                    <TextBlock VerticalAlignment="Center" Text="配置文件:"/>
-                    <ComboBox Width="150"
-                              ItemsSource="{Binding ConfigFiles}"
-                              SelectedItem="{Binding SelectedConfigFile}"
-                              MinWidth="100"/>
-                    <Button Content="加载" Command="{Binding LoadSelectedConfigCommand}" Padding="8,4"/>
-                    <Button Content="删除" Command="{Binding DeleteSelectedConfigCommand}" Padding="8,4"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock VerticalAlignment="Center" Text="配置文件:" Classes="label"/>
+                        <ComboBox Width="160" ItemsSource="{Binding ConfigFiles}" SelectedItem="{Binding SelectedConfigFile}" Height="32"/>
+                        <Button Content="加载" Command="{Binding LoadSelectedConfigCommand}" Classes="outline" Height="32"/>
+                        <Button Content="删除" Command="{Binding DeleteSelectedConfigCommand}" Classes="outline" Foreground="{StaticResource AccentDanger}" Height="32"/>
+                    </StackPanel>
 
-                    <TextBlock VerticalAlignment="Center" Text="新配置:" Margin="20,0,0,0"/>
-                    <TextBox Width="120" Text="{Binding NewConfigName}"/>
-                    <Button Content="创建" Command="{Binding CreateNewConfigCommand}" Padding="8,4"/>
+                    <Border Width="1" Background="{StaticResource BorderColor}" Margin="4,4"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock VerticalAlignment="Center" Text="新配置:" Classes="label"/>
+                        <TextBox Width="140" Text="{Binding NewConfigName}" Height="32" Watermark="输入名称"/>
+                        <Button Content="创建" Command="{Binding CreateNewConfigCommand}" Classes="outline" Height="32"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- 保存按钮 -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                    <Button Content="保存配置"
-                            Command="{Binding SaveConfigCommand}"
-                            Background="Green"
-                            Foreground="White"
-                            Padding="12,6"/>
-                </StackPanel>
+                <Button Grid.Column="1" Content="保存配置" Command="{Binding SaveConfigCommand}" Classes="primary" Background="{StaticResource AccentSuccess}" Height="36"/>
             </Grid>
         </Border>
 
         <!-- 内容区域 - 三栏布局 -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="300"/>
-            </Grid.ColumnDefinitions>
-
+        <Grid Grid.Row="1" ColumnDefinitions="300, *, 280" Margin="16">
             <!-- 左侧 - Package 列表 -->
-            <Grid Grid.Column="0" Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Package 工具栏 -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" Spacing="10">
-                    <TextBlock Text="数据包列表" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Content="添加" Command="{Binding AddPackageCommand}" Padding="8,4" FontSize="11"/>
-                    <Button Content="删除" Command="{Binding DeleteSelectedPackageCommand}" Padding="8,4" FontSize="11"/>
+            <Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" Margin="0,0,16,0">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12" Spacing="8">
+                    <TextBlock Text="数据包列表" Classes="title" VerticalAlignment="Center"/>
+                    <Button Content="添加" Command="{Binding AddPackageCommand}" Classes="action-small"/>
+                    <Button Content="删除" Command="{Binding DeleteSelectedPackageCommand}" Classes="action-small" Foreground="{StaticResource AccentDanger}"/>
                 </StackPanel>
 
-                <!-- Package 列表 -->
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding CurrentPackages}"
-                          SelectedItem="{Binding SelectedPackage}"
-                          AutoGenerateColumns="False"
-                          CanUserResizeColumns="True"
-                          GridLinesVisibility="All"
-                          BorderThickness="1"
-                          BorderBrush="Gray"
-                          IsReadOnly="True">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="区域" Binding="{Binding Area}" Width="50"/>
-                        <DataGridTextColumn Header="起始" Binding="{Binding StartAddress}" Width="50"/>
-                        <DataGridTextColumn Header="长度" Binding="{Binding Length}" Width="50"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Border Grid.Row="1" Classes="card" ClipToBounds="True">
+                    <DataGrid ItemsSource="{Binding CurrentPackages}" SelectedItem="{Binding SelectedPackage}"
+                              IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" Margin="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="区域" Binding="{Binding Area}" Width="60"/>
+                            <DataGridTextColumn Header="起始" Binding="{Binding StartAddress}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
 
                 <!-- Package 编辑区 -->
-                <Border Grid.Row="2" Background="#f5f5f5" Padding="10" Margin="0,10,0,0" CornerRadius="4"
-                        IsVisible="{Binding IsPackageSelected}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="编辑数据包" FontWeight="SemiBold"/>
+                <Border Grid.Row="2" Classes="card" Padding="16" Margin="0,16,0,0" IsVisible="{Binding IsPackageSelected}" Background="#f9fafb">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="编辑数据包" Classes="label"/>
                         <Grid ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditPackageName}"/>
+                            <TextBlock Grid.Row="0" Text="名称:" VerticalAlignment="Center" Margin="0,0,0,8" Classes="label"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditPackageName}" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="区域:" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Row="1" Grid.Column="1"
-                                      SelectedItem="{Binding EditArea}"
-                                      ItemsSource="{Binding AreaTypes}"/>
+                            <TextBlock Grid.Row="1" Text="区域:" VerticalAlignment="Center" Margin="0,0,0,8" Classes="label"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding EditArea}" ItemsSource="{Binding AreaTypes}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="DB号:" VerticalAlignment="Center"
-                                       IsVisible="{Binding IsPackageSelected}"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1"
-                                          Value="{Binding EditDbNumber}"
-                                          Minimum="1" Maximum="65535"
-                                          IsVisible="{Binding IsPackageSelected}"/>
+                            <TextBlock Grid.Row="2" Text="DB号:" VerticalAlignment="Center" IsVisible="{Binding IsPackageSelected}" Margin="0,0,0,8" Classes="label"/>
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding EditDbNumber}" Minimum="1" Maximum="65535" IsVisible="{Binding IsPackageSelected}" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="起始:" VerticalAlignment="Center"/>
-                            <NumericUpDown Grid.Row="3" Grid.Column="1"
-                                          Value="{Binding EditStartAddress}"
-                                          Minimum="0" Maximum="65535"/>
+                            <TextBlock Grid.Row="3" Text="起始:" VerticalAlignment="Center" Margin="0,0,0,8" Classes="label"/>
+                            <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding EditStartAddress}" Minimum="0" Maximum="65535" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="长度:" VerticalAlignment="Center"/>
-                            <NumericUpDown Grid.Row="4" Grid.Column="1"
-                                          Value="{Binding EditLength}"
-                                          Minimum="1" Maximum="65535"/>
+                            <TextBlock Grid.Row="4" Text="长度:" VerticalAlignment="Center" Classes="label"/>
+                            <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding EditLength}" Minimum="1" Maximum="65535"/>
                         </Grid>
-                        <Button Content="应用修改" Command="{Binding ApplyPackageEditCommand}"
-                                HorizontalAlignment="Stretch" Padding="8,4" Margin="0,4,0,0"/>
+                        <Button Content="应用修改" Command="{Binding ApplyPackageEditCommand}" Classes="outline" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- 中间 - 数据项列表 -->
-            <Grid Grid.Column="1" Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- 数据项工具栏 -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" Spacing="10">
-                    <TextBlock Text="数据项列表" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Content="添加" Command="{Binding AddDataItemCommand}" Padding="8,4" FontSize="11"
-                            IsEnabled="{Binding IsPackageSelected}"/>
-                    <Button Content="删除" Command="{Binding DeleteSelectedDataItemCommand}" Padding="8,4" FontSize="11"
-                            IsEnabled="{Binding IsItemSelected}"/>
+            <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12" Spacing="8">
+                    <TextBlock Text="数据项列表" Classes="title" VerticalAlignment="Center"/>
+                    <Button Content="添加" Command="{Binding AddDataItemCommand}" Classes="action-small" IsEnabled="{Binding IsPackageSelected}"/>
+                    <Button Content="删除" Command="{Binding DeleteSelectedDataItemCommand}" Classes="action-small" Foreground="{StaticResource AccentDanger}" IsEnabled="{Binding IsItemSelected}"/>
                 </StackPanel>
 
-                <!-- 数据项列表 -->
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding SelectedPackage.Items}"
-                          SelectedItem="{Binding SelectedDataItem}"
-                          AutoGenerateColumns="False"
-                          CanUserResizeColumns="True"
-                          GridLinesVisibility="All"
-                          BorderThickness="1"
-                          BorderBrush="Gray"
-                          IsReadOnly="True"
-                          IsEnabled="{Binding IsPackageSelected}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="60"/>
-                        <DataGridTextColumn Header="偏移" Binding="{Binding Offset}" Width="50"/>
-                        <DataGridTextColumn Header="位" Binding="{Binding BitOffset}" Width="40"/>
-                        <DataGridTextColumn Header="备注" Binding="{Binding Remark}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Border Grid.Row="1" Classes="card" ClipToBounds="True">
+                    <DataGrid ItemsSource="{Binding SelectedPackage.Items}" SelectedItem="{Binding SelectedDataItem}"
+                              IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal"
+                              IsEnabled="{Binding IsPackageSelected}" Margin="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="70"/>
+                            <DataGridTextColumn Header="偏移" Binding="{Binding Offset}" Width="60"/>
+                            <DataGridTextColumn Header="位" Binding="{Binding BitOffset}" Width="50"/>
+                            <DataGridTextColumn Header="备注" Binding="{Binding Remark}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
 
                 <!-- 数据项编辑区 -->
-                <Border Grid.Row="2" Background="#f5f5f5" Padding="10" Margin="0,10,0,0" CornerRadius="4"
-                        IsVisible="{Binding IsItemSelected}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="编辑数据项" FontWeight="SemiBold"/>
-                        <Grid ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditItemName}"/>
+                <Border Grid.Row="2" Classes="card" Padding="16" Margin="0,16,0,0" IsVisible="{Binding IsItemSelected}" Background="#f9fafb">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="编辑数据项" Classes="label"/>
+                        <Grid ColumnDefinitions="60, *, 60, *" RowDefinitions="Auto,Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center" Margin="0,0,12,8" Classes="label"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding EditItemName}" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="类型:" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Row="1" Grid.Column="1"
-                                      SelectedItem="{Binding EditItemType}"
-                                      ItemsSource="{Binding DataTypes}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="类型:" VerticalAlignment="Center" Margin="0,0,12,8" Classes="label"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding EditItemType}" ItemsSource="{Binding DataTypes}" HorizontalAlignment="Stretch" Margin="0,0,16,8"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="偏移:" VerticalAlignment="Center"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1"
-                                          Value="{Binding EditItemOffset}"
-                                          Minimum="0" Maximum="65535"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="偏移:" VerticalAlignment="Center" Margin="0,0,12,8" Classes="label"/>
+                            <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding EditItemOffset}" Minimum="0" Maximum="65535" Margin="0,0,0,8"/>
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="位号:" VerticalAlignment="Center"
-                                       IsVisible="{Binding ShowBitOffsetEditor}"/>
-                            <NumericUpDown Grid.Row="3" Grid.Column="1"
-                                          Value="{Binding EditItemBitOffset}"
-                                          Minimum="0" Maximum="7"
-                                          IsVisible="{Binding ShowBitOffsetEditor}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="位号:" VerticalAlignment="Center" IsVisible="{Binding ShowBitOffsetEditor}" Margin="0,0,12,8" Classes="label"/>
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding EditItemBitOffset}" Minimum="0" Maximum="7" IsVisible="{Binding ShowBitOffsetEditor}" Margin="0,0,16,8"/>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="备注:" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditItemRemark}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="备注:" VerticalAlignment="Center" Margin="0,0,12,8" Classes="label"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding EditItemRemark}" Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="枚举转换:" VerticalAlignment="Top" Margin="0,4,12,0" Classes="label"/>
+                            <Grid Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" RowDefinitions="Auto, 120">
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                                    <Button Content="添加项" Command="{Binding AddEnumMappingCommand}" Classes="action-small" Height="20" FontSize="10"/>
+                                    <Button Content="删除项" Command="{Binding DeleteEnumMappingCommand}" Classes="action-small" Height="20" FontSize="10" Foreground="{StaticResource AccentDanger}"/>
+                                    <TextBlock Text="(格式: 键=原始值, 值=显示文字)" FontSize="9" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Row="1" Classes="card" ClipToBounds="True">
+                                    <DataGrid ItemsSource="{Binding EditItemEnumMappings}" SelectedItem="{Binding SelectedEnumMapping}"
+                                              IsReadOnly="False" AutoGenerateColumns="False" GridLinesVisibility="All"
+                                              HorizontalGridLinesBrush="#f1f5f9" VerticalGridLinesBrush="#f1f5f9"
+                                              RowHeight="24" FontSize="10">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="键 (Key)" Binding="{Binding Key}" Width="*"/>
+                                            <DataGridTextColumn Header="值 (Value)" Binding="{Binding Value}" Width="2*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Border>
+                            </Grid>
                         </Grid>
-                        <Button Content="应用修改" Command="{Binding ApplyDataItemEditCommand}"
-                                HorizontalAlignment="Stretch" Padding="8,4" Margin="0,4,0,0"/>
+                        <Button Content="应用修改" Command="{Binding ApplyDataItemEditCommand}" Classes="outline" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- 右侧 - 预览和说明 -->
-            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="15">
+            <Border Grid.Column="2" Classes="card" Margin="16,0,0,0" Padding="20">
                 <ScrollViewer>
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="配置说明" FontWeight="Bold" FontSize="16"/>
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="配置说明" Classes="title"/>
 
-                        <TextBlock Text="数据包 (Package)" FontWeight="SemiBold" Foreground="#666" Margin="0,8,0,4"/>
-                        <TextBlock Text="每个数据包对应一次 PLC 批量读取操作。包内的数据项共享同一缓冲区，通过偏移量解析各字段。"
-                                   TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="建议：将相同读取频率、相邻地址的数据项组织到同一个包中。"
-                                   TextWrapping="Wrap" Foreground="#555"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="数据包 (Package)" Classes="label" Foreground="{StaticResource AccentPrimary}"/>
+                            <TextBlock Text="每个数据包对应一次 PLC 批量读取操作。包内的数据项共享同一缓冲区，通过偏移量解析各字段。" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="建议：将相同读取频率、相邻地址的数据项组织到同一个包中。" TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="12"/>
+                        </StackPanel>
 
-                        <TextBlock Text="数据项 (Item)" FontWeight="SemiBold" Foreground="#666" Margin="0,8,0,4"/>
-                        <TextBlock Text="偏移量 (Offset): 相对于数据包起始地址的字节偏移" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="位号 (BitOffset): 仅 Bit 类型需要，0-7" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="类型 (Type): 数据类型决定读取长度" TextWrapping="Wrap" Foreground="#555"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="数据项 (Item)" Classes="label" Foreground="{StaticResource AccentPrimary}"/>
+                            <TextBlock Text="偏移量: 相对于数据包起始地址的字节偏移" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="位号: 仅 Bit 类型需要，0-7" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="类型: 数据类型决定读取长度" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="区域类型" FontWeight="SemiBold" Foreground="#666" Margin="0,8,0,4"/>
-                        <TextBlock Text="DB - 数据块 (需设置 DB号)" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="I - 输入区" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="Q - 输出区" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="M - 位存储器" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="T - 定时器" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="C - 计数器" TextWrapping="Wrap" Foreground="#555"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="区域类型" Classes="label" Foreground="{StaticResource AccentPrimary}"/>
+                            <TextBlock Text="DB - 数据块 (需设置 DB号)" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="I - 输入区" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="Q - 输出区" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="M - 位存储器" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="T - 定时器" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="C - 计数器" Foreground="{StaticResource TextSecondary}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="操作流程" FontWeight="SemiBold" Foreground="#666" Margin="0,8,0,4"/>
-                        <TextBlock Text="1. 选择或创建配置文件" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="2. 添加/编辑数据包" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="3. 在包内添加数据项" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="4. 保存配置" TextWrapping="Wrap" Foreground="#555"/>
-                        <TextBlock Text="5. 应用并关闭" TextWrapping="Wrap" Foreground="#555"/>
-
-                        <TextBlock Text="提示: 修改后请点击保存按钮保存更改"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,12,0,0"
-                                   Foreground="Red"
-                                   FontSize="11"/>
+                        <Border Background="#fef2f2" BorderBrush="#fca5a5" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <TextBlock Text="提示: 修改后请点击上方 [保存配置] 按钮以永久保存更改。" TextWrapping="Wrap" Foreground="{StaticResource AccentDanger}" FontSize="12" FontWeight="SemiBold"/>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
         </Grid>
 
         <!-- 底部状态栏 -->
-        <Border Grid.Row="2" Background="#f0f0f0" Padding="10,5">
+        <Border Grid.Row="2" Background="{StaticResource HeaderBg}" Padding="16,12" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-                <Button Grid.Column="1"
-                        Content="应用并关闭"
-                        Command="{Binding ApplyAndCloseCommand}"
-                        Background="#2196F3"
-                        Foreground="White"
-                        Padding="15,8"/>
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                <Button Grid.Column="1" Content="应用并关闭" Command="{Binding ApplyAndCloseCommand}" Classes="primary" Height="36"/>
             </Grid>
         </Border>
     </Grid>

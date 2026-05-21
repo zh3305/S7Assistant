@@ -2,19 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:styling="clr-namespace:FluentAvalonia.Styling;assembly=FluentAvalonia"
              x:Class="S7Assistant.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://S7Assistant/Styles/CustomStyles.axaml" />
-    </Application.Styles>
-
-    <Application.Styles>
-        <Style Selector="Window">
-            <Setter Property="FontFamily" Value="Microsoft YaHei UI"/>
-        </Style>
-        
-        <FluentTheme/>
+        <styling:FluentAvaloniaTheme PreferUserAccentColor="True" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-        <styling:FluentAvaloniaTheme />
+        <StyleInclude Source="avares://S7Assistant/Styles/CustomStyles.axaml" />
+        <StyleInclude Source="avares://S7Assistant/Styles/LightIndustrial.axaml" />
+        
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI, Roboto"/>
+        </Style>
     </Application.Styles>
 </Application>

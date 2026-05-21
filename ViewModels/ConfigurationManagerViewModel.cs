@@ -155,6 +155,26 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     private string _editItemRemark = "";
 
     /// <summary>
+    /// 值枚举转换项
+    /// </summary>
+    public sealed partial class EnumMappingItem : ObservableObject
+    {
+        [ObservableProperty] private string _key = "";
+        [ObservableProperty] private string _value = "";
+    }
+
+    /// <summary>
+    /// 编辑中的值枚举列表
+    /// </summary>
+    public ObservableCollection<EnumMappingItem> EditItemEnumMappings { get; } = new();
+
+    /// <summary>
+    /// 选中的枚举转换项
+    /// </summary>
+    [ObservableProperty]
+    private EnumMappingItem? _selectedEnumMapping;
+
+    /// <summary>
     /// 是否显示位偏移编辑器
     /// </summary>
     public bool ShowBitOffsetEditor => EditItemType == S7DataType.Bit;
@@ -216,6 +236,16 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
             EditItemOffset = value.Offset;
             EditItemBitOffset = value.BitOffset;
             EditItemRemark = value.Remark;
+
+            // 更新枚举映射列表
+            EditItemEnumMappings.Clear();
+            if (value.TypeValues != null)
+            {
+                foreach (var kv in value.TypeValues)
+                {
+                    EditItemEnumMappings.Add(new EnumMappingItem { Key = kv.Key, Value = kv.Value });
+                }
+            }
         }
     }
 
@@ -482,7 +512,40 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
         SelectedDataItem.Offset = EditItemOffset;
         SelectedDataItem.BitOffset = EditItemBitOffset;
         SelectedDataItem.Remark = EditItemRemark;
+
+        // 从列表同步回字典
+        var dict = new Dictionary<string, string>();
+        foreach (var mapping in EditItemEnumMappings)
+        {
+            if (!string.IsNullOrWhiteSpace(mapping.Key))
+            {
+                dict[mapping.Key.Trim()] = mapping.Value.Trim();
+            }
+        }
+        SelectedDataItem.TypeValues = dict;
+
         StatusMessage = $"已更新数据项: {EditItemName}";
+    }
+
+    /// <summary>
+    /// 添加枚举映射项
+    /// </summary>
+    [RelayCommand]
+    private void AddEnumMapping()
+    {
+        EditItemEnumMappings.Add(new EnumMappingItem { Key = "0", Value = "描述" });
+    }
+
+    /// <summary>
+    /// 删除选中的枚举映射项
+    /// </summary>
+    [RelayCommand]
+    private void DeleteEnumMapping()
+    {
+        if (SelectedEnumMapping != null)
+        {
+            EditItemEnumMappings.Remove(SelectedEnumMapping);
+        }
     }
 
     #endregion

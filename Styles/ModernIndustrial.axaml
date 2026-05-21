@@ -1,0 +1,100 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <!-- Background Colors -->
+        <SolidColorBrush x:Key="MainBg" Color="#0f172a"/>
+        <SolidColorBrush x:Key="CardBg" Color="#1e293b"/>
+        <SolidColorBrush x:Key="SidebarBg" Color="#020617"/>
+        
+        <!-- Accent Colors -->
+        <SolidColorBrush x:Key="AccentCyan" Color="#06b6d4"/>
+        <SolidColorBrush x:Key="AccentBlue" Color="#3b82f6"/>
+        <SolidColorBrush x:Key="AccentGreen" Color="#10b981"/>
+        <SolidColorBrush x:Key="AccentRose" Color="#e11d48"/>
+        <SolidColorBrush x:Key="AccentAmber" Color="#f59e0b"/>
+        
+        <!-- Text Colors -->
+        <SolidColorBrush x:Key="TextPrimary" Color="#f1f5f9"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#94a3b8"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#64748b"/>
+        
+        <!-- Border/Line Colors -->
+        <SolidColorBrush x:Key="BorderColor" Color="#334155"/>
+    </Styles.Resources>
+
+    <!-- Global Window Style -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource MainBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+
+    <!-- Sidebar Button Style -->
+    <Style Selector="Button.nav-btn">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="Padding" Value="16,12"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Margin" Value="4,2"/>
+    </Style>
+    <Style Selector="Button.nav-btn:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1e293b"/>
+    </Style>
+    <Style Selector="Button.nav-btn:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="#334155"/>
+    </Style>
+
+    <!-- Action Button Style -->
+    <Style Selector="Button.action-btn">
+        <Setter Property="Background" Value="{StaticResource AccentBlue}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.action-btn:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#2563eb"/>
+        <Setter Property="BoxShadow" Value="0 0 10 0 #403b82f6"/>
+    </Style>
+
+    <!-- DataGrid Customization -->
+    <Style Selector="DataGrid">
+        <Setter Property="Background" Value="{StaticResource CardBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="Background" Value="#0f172a"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="12,0"/>
+    </Style>
+    <Style Selector="DataGridRow">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill" Value="#334155"/>
+    </Style>
+    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill" Value="#1e40af"/>
+    </Style>
+
+    <!-- Log Panel Item -->
+    <Style Selector="TextBlock.log-entry">
+        <Setter Property="FontFamily" Value="Consolas, monospace"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Margin" Value="0,1"/>
+    </Style>
+
+    <!-- Section Header -->
+    <Style Selector="TextBlock.section-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentCyan}"/>
+        <Setter Property="Margin" Value="0,0,0,12"/>
+    </Style>
+
+</Styles>

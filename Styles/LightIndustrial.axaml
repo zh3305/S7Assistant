@@ -1,0 +1,122 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <!-- Light Theme Colors -->
+        <SolidColorBrush x:Key="MainBg" Color="#f8fafc"/>
+        <SolidColorBrush x:Key="CardBg" Color="#ffffff"/>
+        <SolidColorBrush x:Key="HeaderBg" Color="#ffffff"/>
+        
+        <SolidColorBrush x:Key="AccentPrimary" Color="#0284c7"/>
+        <SolidColorBrush x:Key="AccentPrimaryHover" Color="#0369a1"/>
+        <SolidColorBrush x:Key="AccentSuccess" Color="#059669"/>
+        <SolidColorBrush x:Key="AccentDanger" Color="#dc2626"/>
+        
+        <SolidColorBrush x:Key="TextPrimary" Color="#0f172a"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#475569"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#94a3b8"/>
+        
+        <SolidColorBrush x:Key="BorderColor" Color="#e2e8f0"/>
+    </Styles.Resources>
+
+    <!-- Global Window -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource MainBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+
+    <!-- Cards -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{StaticResource CardBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <!-- Typography -->
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+    </Style>
+    <Style Selector="TextBlock.title">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+
+    <!-- Buttons -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{StaticResource AccentPrimary}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="12,4"/>
+        <Setter Property="Height" Value="28"/>
+    </Style>
+
+    <Style Selector="Button.outline">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="10,4"/>
+        <Setter Property="Height" Value="28"/>
+    </Style>
+
+    <Style Selector="Button.action-small">
+        <Setter Property="Background" Value="#f1f5f9"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentPrimary}"/>
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Height" Value="22"/>
+    </Style>
+
+    <!-- DataGrid High Density -->
+    <Style Selector="DataGrid">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="RowHeight" Value="28"/>
+    </Style>
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="Background" Value="#f1f5f9"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+    <Style Selector="DataGridCell">
+        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="BorderBrush" Value="#f1f5f9"/>
+        <Setter Property="BorderThickness" Value="0,0,1,0"/>
+    </Style>
+    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill" Value="#f1f5f9"/>
+    </Style>
+    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+        <Setter Property="Fill" Value="#e2e8f0"/>
+    </Style>
+
+    <!-- Inputs -->
+    <Style Selector="TextBox">
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+    <Style Selector="NumericUpDown">
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="ShowButtonSpinner" Value="False"/>
+    </Style>
+</Styles>

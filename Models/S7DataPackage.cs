@@ -63,7 +63,7 @@ public sealed partial class S7DataPackage : ObservableObject
     /// <summary>
     /// 更新所有数据项的完整地址
     /// </summary>
-    public void UpdateFullAddresses()
+    /*public void UpdateFullAddresses()
     {
         foreach (var item in Items)
         {
@@ -75,6 +75,7 @@ public sealed partial class S7DataPackage : ObservableObject
                 item.FullAddress = item.BitOffset.HasValue
                     ? $"DB{DbNumber}.DBX{absoluteAddress}.{item.BitOffset}"
                     : $"DB{DbNumber}.DBB{absoluteAddress}";
+                
             }
             else
             {
@@ -83,7 +84,58 @@ public sealed partial class S7DataPackage : ObservableObject
                     : $"{prefix}{absoluteAddress}";
             }
         }
+    }*/
+
+    public void UpdateFullAddresses()
+    {
+        foreach (var item in Items)
+        {
+            var absoluteAddress = StartAddress + item.Offset;
+            var prefix = Area.GetPrefix();
+
+            if (Area == S7AreaType.DB)
+            {
+                // 只有Bit类型并且BitOffset有值，才生成DBX
+                if (item.Type == S7DataType.Bit && item.BitOffset.HasValue)
+                {
+                    item.FullAddress = $"DB{DbNumber}.DBX{absoluteAddress}.{item.BitOffset}";
+                }
+                else
+                {
+                    item.FullAddress = item.Type switch
+                    {
+                        S7DataType.Byte => $"DB{DbNumber}.DBB{absoluteAddress}",
+                        S7DataType.Int or S7DataType.Word => $"DB{DbNumber}.DBW{absoluteAddress}",
+                        S7DataType.DInt or S7DataType.DWord or S7DataType.Real => $"DB{DbNumber}.DBD{absoluteAddress}",
+                        _ => $"DB{DbNumber}.DBB{absoluteAddress}" // 默认兜底
+                    };
+                }
+            }
+            else
+            {
+                // M、I、Q 等其他存储区
+                if (item.Type == S7DataType.Bit && item.BitOffset.HasValue)
+                {
+                    item.FullAddress = $"{prefix}{absoluteAddress}.{item.BitOffset}";
+                }
+                else
+                {
+                    item.FullAddress = item.Type switch
+                    {
+                        S7DataType.Byte => $"{prefix}B{absoluteAddress}",
+                        S7DataType.Int or S7DataType.Word => $"{prefix}W{absoluteAddress}",
+                        S7DataType.DInt or S7DataType.DWord or S7DataType.Real => $"{prefix}D{absoluteAddress}",
+                        _ => $"{prefix}B{absoluteAddress}"
+                    };
+                }
+            }
+        }
     }
+
+
+
+
+    /// <summary>
 
     /// <summary>
     /// 从读取的字节缓冲区中更新所有数据项的值

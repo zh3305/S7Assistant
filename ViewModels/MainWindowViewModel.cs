@@ -1132,7 +1132,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         return type switch
         {
-            S7DataType.Bit => bool.Parse(value),
+            S7DataType.Bit => ParseBitValue(value),
             S7DataType.Byte => byte.Parse(value),
             S7DataType.Word => ushort.Parse(value),
             S7DataType.Int => short.Parse(value),
@@ -1144,6 +1144,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
             S7DataType.LInt => long.Parse(value),
             _ => throw new NotSupportedException($"不支持的数据类型: {type}")
         };
+    }
+
+    private static bool ParseBitValue(string input)
+    {
+        string s = input.Trim();
+        if (s == "1" || s.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        if (s == "0" || s.Equals("false", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+        throw new ArgumentException("Bit类型仅支持输入：0、1、true、false");
     }
 
     #endregion

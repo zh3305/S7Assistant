@@ -252,7 +252,8 @@ public sealed class Sharp7ClientService : IS7ClientService, IDisposable
             if (dataType == S7DataType.Bit && address.Bit.HasValue)
             {
                 buffer = await ReadByteForBitWriteAsync(address);
-                ModifyBitInBuffer(buffer, address.Bit.Value, (bool)value);
+                bool bitVal = Convert.ToBoolean(value);
+                ModifyBitInBuffer(buffer, address.Bit.Value, bitVal);
             }
             else
             {

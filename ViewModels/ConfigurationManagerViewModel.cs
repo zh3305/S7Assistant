@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FluentAvalonia.UI.Data;
 using S7Assistant.Models;
 using S7Assistant.Services;
 using System;
@@ -178,6 +179,23 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     /// 是否显示位偏移编辑器
     /// </summary>
     public bool ShowBitOffsetEditor => EditItemType == S7DataType.Bit;
+
+    // 这个partial回调，放在属性下面、类里面
+    partial void OnEditItemTypeChanged(S7DataType oldValue, S7DataType newValue)
+    {
+        // 手动通知UI刷新ShowBitOffsetEditor
+        OnPropertyChanged(nameof(ShowBitOffsetEditor));
+
+        if (newValue != S7DataType.Bit)
+        {
+            EditItemBitOffset = null; // 设为null，HasValue=false，就不会进DBX分支
+        }
+        else
+        {
+            EditItemBitOffset = 0; // 切到Bit时默认位0
+        }
+    }
+
 
     #endregion
 
@@ -557,6 +575,11 @@ public sealed partial class ConfigurationManagerViewModel : ObservableObject
     private void ApplyAndClose()
     {
         var packages = CurrentPackages.ToList();
+        foreach (var package in packages)
+        {
+            package.UpdateFullAddresses();
+
+        }
         _loadCallback?.Invoke(packages);
         StatusMessage = "配置已应用";
         _closeCallback?.Invoke();
